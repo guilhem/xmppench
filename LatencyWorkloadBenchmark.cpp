@@ -7,11 +7,12 @@
 #include <boost/format.hpp>
 
 
-LatencyWorkloadBenchmark::LatencyWorkloadBenchmark(Swift::NetworkFactories* networkFactories, AccountDataProvider* accountProvider, Options& opt) : networkFactories(networkFactories), accountProvider(accountProvider), opt(opt) {
+LatencyWorkloadBenchmark::LatencyWorkloadBenchmark(std::vector<Swift::NetworkFactories*> networkFactories, AccountDataProvider* accountProvider, Options& opt) : networkFactories(networkFactories), accountProvider(accountProvider), opt(opt) {
 	std::cout << "Creating sessions...";
+
 	// create active sessions
 	for (int i = 0; i < opt.noOfActiveSessions / 2; ++i) {
-		ActiveSessionPair *activePair = new ActiveSessionPair(accountProvider, networkFactories, &trustChecker, 100, opt.stanzasPerConnection, "Hello there.");
+		ActiveSessionPair *activePair = new ActiveSessionPair(accountProvider, networkFactories[i % networkFactories.size()], &trustChecker, 100, opt.stanzasPerConnection, "Hello there.");
 		activePair->onReady.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkSessionReady, this, activePair));
 		activePair->onDoneBenchmarking.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkSessionDone, this, activePair));
 		activeSessionPairs.push_back(activePair);
@@ -20,7 +21,7 @@ LatencyWorkloadBenchmark::LatencyWorkloadBenchmark(Swift::NetworkFactories* netw
 
 	// create idle sessions
 	for (int i = 0; i < opt.noOfIdleSessions; ++i) {
-		IdleSession *idleSession = new IdleSession(accountProvider, networkFactories, &trustChecker);
+		IdleSession *idleSession = new IdleSession(accountProvider, networkFactories[i % networkFactories.size()], &trustChecker);
 		idleSession->onReady.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkSessionReady, this, idleSession));
 		idleSession->onDoneBenchmarking.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkSessionDone, this, idleSession));
 		idleSessions.push_back(idleSession);
@@ -43,6 +44,7 @@ LatencyWorkloadBenchmark::~LatencyWorkloadBenchmark() {
 }
 
 void LatencyWorkloadBenchmark::handleBenchmarkSessionReady(BenchmarkSession* session) {
+	boost::unique_lock<boost::mutex> lock(handleSessionReadyMutex);
 	readySessions.push_back(session);
 	if (readySessions.size() == sessionsToActivate.size()) {
 		std::cout << "done." << std::endl;
@@ -57,9 +59,10 @@ void LatencyWorkloadBenchmark::handleBenchmarkSessionReady(BenchmarkSession* ses
 }
 
 void LatencyWorkloadBenchmark::handleBenchmarkSessionDone(BenchmarkSession *session) {
+	boost::unique_lock<boost::mutex> lock(handleSessionDoneMutex);
 	doneSessions.push_back(session);
 	if (dynamic_cast<ActiveSessionPair*>(session)) {
-		std::cout << "Active session done: " << doneSessions.size() << " / " << readySessions.size() << std::endl;
+	//	std::cout << "Active session done: " << doneSessions.size() << " / " << readySessions.size() << std::endl;
 	}
 	if (doneSessions.size() == readySessions.size()) {
 		finishSessions();
@@ -84,6 +87,20 @@ std::string timeToString(double seconds) {
 	return str( boost::format("%.3lf %s") % microseconds % siPrefix[power] );
 }
 
+std::string speedToString(double speed, std::string unit) {
+
+	static const char *siPrefix[] = {"", "k", "M", "G", "T", NULL};
+	int power = 0;
+
+	while (speed >= 1000) {
+		++power;
+		speed = speed / 1000.0;
+	}
+
+	return str( boost::format("%.3lf %s%s") % speed % siPrefix[power] % unit );
+
+}
+
 void LatencyWorkloadBenchmark::finishSessions() {
 	std::cout << "Calculating results...";
 
@@ -100,9 +117,17 @@ void LatencyWorkloadBenchmark::finishSessions() {
 		BenchmarkSession::LatencyInfo latency = session->getLatencyResults();
 		if (latency.minSeconds < accumulated.minSeconds) accumulated.minSeconds = latency.minSeconds;
 		if (latency.maxSeconds > accumulated.maxSeconds) accumulated.maxSeconds = latency.maxSeconds;
-		accumulated.avgSeconds = (accumulated.avgSeconds + latency.avgSeconds) / 2;
+		accumulated.avgSeconds += latency.avgSeconds;
+		accumulated.bytesPerSecond += latency.bytesPerSecond;
+		accumulated.stanzasPerSecond += latency.stanzasPerSecond;
 		accumulated.stanzas += latency.stanzas;
 	}
+
+	accumulated.avgSeconds /= doneSessions.size();
+	//accumulated.stanzasPerSecond /= doneSessions.size();
+	//accumulated.bytesPerSecond /= doneSessions.size();
+
+
 	std::cout << "done" << std::endl;
 
 	std::cout << "Finishing sessions." << std::endl;
@@ -115,12 +140,25 @@ void LatencyWorkloadBenchmark::finishSessions() {
 
 	std::cout << std::endl;
 	std::cout << std::endl;
-	std::cout << "- Results -" << std::endl;
-	std::cout << "No. of stanzas:  " << accumulated.stanzas << std::endl;
-	std::cout << "Minimal latency: " << timeToString(accumulated.minSeconds) << std::endl;
-	std::cout << "Average latency: " << timeToString(accumulated.avgSeconds) << std::endl;
-	std::cout << "Maximal latency: " << timeToString(accumulated.maxSeconds) << std::endl;
+	std::cout << "= xmppench =" << std::endl << std::endl;
+
+	std::cout << "- Configuration -" << std::endl;
+	std::cout << "Number of Jobs:         " << networkFactories.size() << std::endl;
+	std::cout << "Active Connections:     " << opt.noOfActiveSessions << std::endl;
+	std::cout << "Idle Connections:       " << opt.noOfIdleSessions << std::endl;
+	std::cout << "Stanzas per Connection: " << opt.stanzasPerConnection << std::endl;
+
 	std::cout << std::endl;
+	std::cout << std::endl;
+
+	std::cout << "- Results -" << std::endl;
+	std::cout << "No. of stanzas:      " << accumulated.stanzas << std::endl;
+	std::cout << "Minimal latency:     " << timeToString(accumulated.minSeconds) << std::endl;
+	std::cout << "Average latency:     " << timeToString(accumulated.avgSeconds) << std::endl;
+	std::cout << "Maximal latency:     " << timeToString(accumulated.maxSeconds) << std::endl;
+	std::cout << std::endl;
+	std::cout << "Throughput (Stanza): " << speedToString(accumulated.stanzasPerSecond, "Stanzas/Second") << std::endl;
+	std::cout << "Throughput (Data):   " << speedToString(accumulated.bytesPerSecond, "Bytes/Second") << std::endl;
 
 	exit(0);
 }

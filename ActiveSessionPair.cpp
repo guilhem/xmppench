@@ -10,7 +10,7 @@
 using namespace Swift;
 
 ActiveSessionPair::ActiveSessionPair(AccountDataProvider* accountDataProvider, Swift::NetworkFactories* networkFactories, Swift::CertificateTrustChecker* trustChecker, int messagesPerSecond, int messages, std::string body) :
-	accountDataProvider(accountDataProvider), networkFactories(networkFactories), trustChecker(trustChecker), messagesPerSecond(messagesPerSecond), messages(messages), body(body), connectedClients(0), noOfSendMessagesA(0), noOfReceivedMessagesA(0), noOfSendMessagesB(0), noOfReceivedMessagesB(0) {
+	accountDataProvider(accountDataProvider), networkFactories(networkFactories), trustChecker(trustChecker), messagesPerSecond(messagesPerSecond), messages(messages), body(body), connectedClients(0), noOfSendMessagesA(0), noOfReceivedMessagesA(0), noOfSendMessagesB(0), noOfReceivedMessagesB(0), bytesReceived(0) {
 
 	AccountDataProvider::Account accA = accountDataProvider->getAccount();
 	AccountDataProvider::Account accB = accountDataProvider->getAccount();
@@ -55,8 +55,11 @@ void ActiveSessionPair::stop() {
 
 void ActiveSessionPair::benchmark() {
 	clientA->onMessageReceived.connect(boost::bind(&ActiveSessionPair::handleMessageReceivedA, this, _1));
+	clientA->onDataRead.connect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
 	clientB->onMessageReceived.connect(boost::bind(&ActiveSessionPair::handleMessageReceivedB, this, _1));
+	clientB->onDataRead.connect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
 
+	begin.now();
 	sendMessageA();
 	sendMessageB();
 }
@@ -143,6 +146,9 @@ void ActiveSessionPair::handleMessageTimeoutB() {
 	std::cout << this << " - " << "Messages recv'd by A: " << noOfReceivedMessagesA << std::endl;
 }
 
+void ActiveSessionPair::handleDataRead(const SafeByteArray& data) {
+	bytesReceived += data.size();
+}
 
 BenchmarkSession::LatencyInfo ActiveSessionPair::getLatencyResults() {
 	BenchmarkSession::LatencyInfo info;
@@ -171,6 +177,10 @@ BenchmarkSession::LatencyInfo ActiveSessionPair::getLatencyResults() {
 	}
 	info.avgSeconds /= info.stanzas;
 
+	Time benchmarkDuration = end - begin;
+	info.bytesPerSecond = (double)bytesReceived / benchmarkDuration.seconds();
+	info.stanzasPerSecond = (double)info.stanzas / benchmarkDuration.seconds();
+
 	return info;
 }
 
@@ -196,6 +206,9 @@ void ActiveSessionPair::calculateLatencies(std::list<MessageStamp>& sent, std::l
 void ActiveSessionPair::checkIfDone() {
 	if (noOfReceivedMessagesA >= messages &&
 		noOfReceivedMessagesB >= messages) {
+		clientA->onDataRead.connect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
+		clientB->onDataRead.connect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
+		end.now();
 		onDoneBenchmarking();
 		done = true;
 	}

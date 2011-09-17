@@ -19,9 +19,11 @@
 
 
 #include <iostream>
+#include <vector>
 
 #include <boost/format.hpp>
 #include <boost/program_options.hpp>
+#include <boost/thread.hpp>
 
 #include <Swiften/JID/JID.h>
 #include <Swiften/EventLoop/SimpleEventLoop.h>
@@ -54,10 +56,39 @@ private:
 	unsigned long counter;
 };
 
+class WorkerLoop {
+public:
+	WorkerLoop() : thread(0), eventLoop(), networkFactories(&eventLoop) { }
+
+	~WorkerLoop() {
+		if (thread) thread->join();
+		delete thread;
+	}
+
+	void start() {
+		thread = new boost::thread(boost::bind(&WorkerLoop::run, this));
+	}
+
+	NetworkFactories* getNetworkFactories() {
+		return &networkFactories;
+	}
+
+private:
+	void run() {
+		eventLoop.run();
+	}
+
+private:
+	boost::thread* thread;
+	SimpleEventLoop eventLoop;
+	BoostNetworkFactories networkFactories;
+};
+
 int main(int argc, char *argv[]) {
 	std::string hostname;
 	std::string bodyfile;
 	bool waitAtBeginning;
+	int jobs = 1;
 
 	LatencyWorkloadBenchmark::Options options;
 
@@ -68,6 +99,7 @@ int main(int argc, char *argv[]) {
 			("help",																			"produce help message")
 			("hostname", po::value<std::string>(&hostname)->default_value("localhost"),		"hostname of benchmarked server")
 			("idles", po::value<int>(&options.noOfIdleSessions)->default_value(8000),			"number of idle connections")
+			//("jobs", po::value<int>(&jobs)->default_value(1),									"number of threads to run")
 			("plogins", po::value<int>(&options.parallelLogins)->default_value(2),			"number of parallel logins")
 			("stanzas", po::value<int>(&options.stanzasPerConnection)->default_value(1000),	"stanzas to send per connection")
 			("waitatstart", po::value<bool>(&waitAtBeginning),									"waits at the beginning on keyboard input")
@@ -87,13 +119,23 @@ int main(int argc, char *argv[]) {
 		std::cin >> c;
 	}
 
+	std::vector<WorkerLoop*> workers;
+	std::vector<NetworkFactories*> networkFactories;
+	for (int n = 0; n < jobs; ++n) {
+		WorkerLoop *worker = new WorkerLoop;
+		workers.push_back(worker);
+		networkFactories.push_back(worker->getNetworkFactories());
+	}
 
-	SimpleEventLoop eventLoop;
-	BoostNetworkFactories networkFactories(&eventLoop);
 	ContinousAccountProivder accountProvider("localhost");
 
-	LatencyWorkloadBenchmark benchmark(&networkFactories, &accountProvider, options);
+	LatencyWorkloadBenchmark benchmark(networkFactories, &accountProvider, options);
 
-	eventLoop.run();
+	for (int n = 0; n < jobs; ++n) {
+		workers[n]->start();
+	}
+	for (int n = 0; n < jobs; ++n) {
+		delete workers[n];
+	}
 	return 0;
 }

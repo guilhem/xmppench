@@ -25,7 +25,7 @@ public:
 	};
 
 public:
-	LatencyWorkloadBenchmark(Swift::NetworkFactories* networkFactories, AccountDataProvider* accountProvider, Options& opt);
+	LatencyWorkloadBenchmark(std::vector<Swift::NetworkFactories*> networkFactories, AccountDataProvider* accountProvider, Options& opt);
 	~LatencyWorkloadBenchmark();
 
 private:
@@ -37,7 +37,7 @@ private:
 	void finishSessions();
 
 private:
-	Swift::NetworkFactories* networkFactories;
+	std::vector<Swift::NetworkFactories*> networkFactories;
 	AccountDataProvider* accountProvider;
 	Options opt;
 
@@ -51,4 +51,7 @@ private:
 	std::vector<BenchmarkSession*> sessionsToActivate;
 	std::vector<BenchmarkSession*> readySessions;
 	std::list<BenchmarkSession*> doneSessions;
+
+	boost::mutex handleSessionReadyMutex;
+	boost::mutex handleSessionDoneMutex;
 };

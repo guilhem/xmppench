@@ -39,6 +39,8 @@ private:
 	void handleMessageReceivedB(boost::shared_ptr<Swift::Message>);
 	void handleMessageTimeoutB();
 
+	void handleDataRead(const Swift::SafeByteArray&);
+
 private:
 	inline void checkIfDone();
 
@@ -87,4 +89,8 @@ private:
 	std::list<MessageStamp> receivedMessagesB;
 	int noOfReceivedMessagesB;
 	Swift::Timer::ref messageTimeoutB;
+
+	Time begin;
+	Time end;
+	boost::uintmax_t bytesReceived;
 };

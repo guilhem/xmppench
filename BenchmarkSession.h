@@ -9,6 +9,9 @@ public:
 		double maxSeconds;
 		double avgSeconds;
 		unsigned long stanzas;
+
+		double bytesPerSecond;
+		double stanzasPerSecond;
 	};
 
 public:
