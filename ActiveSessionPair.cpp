@@ -183,7 +183,7 @@ BenchmarkSession::LatencyInfo ActiveSessionPair::getLatencyResults() {
 	boost::posix_time::time_duration benchmarkDuration = end - begin;
 	info.bytesPerSecond = (double)bytesReceived / benchmarkDuration.seconds();
 	info.stanzasPerSecond = (double)info.stanzas / benchmarkDuration.seconds();
-
+	info.receivedBytes = (double)bytesReceived;
 	return info;
 }
 

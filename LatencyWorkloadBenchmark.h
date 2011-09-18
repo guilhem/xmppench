@@ -2,6 +2,8 @@
 
 #include <vector>
 
+#include <boost/date_time/microsec_time_clock.hpp>
+#include <boost/date_time/posix_time/ptime.hpp>
 #include <boost/shared_ptr.hpp>
 
 #include <Swiften/Client/Client.h>
@@ -56,4 +58,7 @@ private:
 
 	boost::mutex handleSessionReadyMutex;
 	boost::mutex handleSessionDoneMutex;
+
+	boost::posix_time::ptime begin;
+	boost::posix_time::ptime end;
 };

@@ -10,6 +10,7 @@ public:
 		double avgSeconds;
 		unsigned long stanzas;
 
+		double receivedBytes;
 		double bytesPerSecond;
 		double stanzasPerSecond;
 	};

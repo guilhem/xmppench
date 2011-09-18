@@ -69,6 +69,7 @@ void LatencyWorkloadBenchmark::handleBenchmarkSessionDone(BenchmarkSession *sess
 }
 
 void LatencyWorkloadBenchmark::benchmark() {
+	begin = boost::posix_time::microsec_clock::local_time();
 	for(std::vector<BenchmarkSession*>::iterator i = readySessions.begin(); i != readySessions.end(); ++i) {
 		BenchmarkSession* session = *i;
 		session->benchmark();
@@ -101,6 +102,8 @@ std::string speedToString(double speed, std::string unit) {
 }
 
 void LatencyWorkloadBenchmark::finishSessions() {
+	end = boost::posix_time::microsec_clock::local_time();
+	boost::posix_time::time_duration benchmarkDuration = end - begin;
 	std::cout << "Calculating results...";
 
 	if (doneSessions.empty()) {
@@ -117,12 +120,14 @@ void LatencyWorkloadBenchmark::finishSessions() {
 		if (latency.minSeconds < accumulated.minSeconds) accumulated.minSeconds = latency.minSeconds;
 		if (latency.maxSeconds > accumulated.maxSeconds) accumulated.maxSeconds = latency.maxSeconds;
 		accumulated.avgSeconds += latency.avgSeconds;
-		accumulated.bytesPerSecond += latency.bytesPerSecond;
-		accumulated.stanzasPerSecond += latency.stanzasPerSecond;
+		accumulated.receivedBytes += latency.receivedBytes;
 		accumulated.stanzas += latency.stanzas;
 	}
 
+	double duration = ((double)benchmarkDuration.seconds() + (double)benchmarkDuration.total_microseconds()/1000/1000);
 	accumulated.avgSeconds /= doneSessions.size();
+	accumulated.bytesPerSecond = accumulated.receivedBytes / duration;
+	accumulated.stanzasPerSecond = accumulated.stanzas / duration;
 	//accumulated.stanzasPerSecond /= doneSessions.size();
 	//accumulated.bytesPerSecond /= doneSessions.size();
 
@@ -146,6 +151,7 @@ void LatencyWorkloadBenchmark::finishSessions() {
 	std::cout << "Active Connections:     " << opt.noOfActiveSessions << std::endl;
 	std::cout << "Idle Connections:       " << opt.noOfIdleSessions << std::endl;
 	std::cout << "Stanzas per Connection: " << opt.stanzasPerConnection << std::endl;
+	std::cout << "Body Message Size:      " << speedToString(opt.bodymessage.size(), "Bytes") << std::endl;
 	std::cout << "Stream Compression:     " << (opt.noCompression ? "Not Used" : "Used If Available") << std::endl;
 	std::cout << "TLS:                    " << (opt.noTLS ? "Not Used" : "Used If Available") << std::endl;
 
