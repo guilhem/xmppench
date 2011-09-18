@@ -4,7 +4,7 @@
 
 using namespace Swift;
 
-IdleSession::IdleSession(AccountDataProvider* accountDataProvider, Swift::NetworkFactories* networkFactories, Swift::CertificateTrustChecker* trustChecker) {
+IdleSession::IdleSession(AccountDataProvider* accountDataProvider, Swift::NetworkFactories* networkFactories, Swift::CertificateTrustChecker* trustChecker, bool noCompression, bool noTLS) : noCompression(noCompression), noTLS(noTLS) {
 	AccountDataProvider::Account account = accountDataProvider->getAccount();
 
 	client = new CoreClient(Swift::JID(account.jid), createSafeByteArray(account.password), networkFactories);
@@ -20,6 +20,8 @@ IdleSession::~IdleSession() {
 void IdleSession::start() {
 	ClientOptions options;
 	options.allowPLAINWithoutTLS = true;
+	options.useStreamCompression = !noCompression;
+	options.useTLS = noTLS ? ClientOptions::NeverUseTLS : ClientOptions::UseTLSWhenAvailable;
 
 	client->connect(options);
 }

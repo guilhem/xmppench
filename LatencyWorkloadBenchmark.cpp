@@ -11,7 +11,7 @@ LatencyWorkloadBenchmark::LatencyWorkloadBenchmark(std::vector<Swift::NetworkFac
 
 	// create active sessions
 	for (int i = 0; i < opt.noOfActiveSessions / 2; ++i) {
-		ActiveSessionPair *activePair = new ActiveSessionPair(accountProvider, networkFactories[i % networkFactories.size()], &trustChecker, 100, opt.stanzasPerConnection, opt.bodymessage);
+		ActiveSessionPair *activePair = new ActiveSessionPair(accountProvider, networkFactories[i % networkFactories.size()], &trustChecker, 100, opt.stanzasPerConnection, opt.bodymessage, opt.noCompression, opt.noTLS);
 		activePair->onReady.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkSessionReady, this, activePair));
 		activePair->onDoneBenchmarking.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkSessionDone, this, activePair));
 		activeSessionPairs.push_back(activePair);
@@ -20,7 +20,7 @@ LatencyWorkloadBenchmark::LatencyWorkloadBenchmark(std::vector<Swift::NetworkFac
 
 	// create idle sessions
 	for (int i = 0; i < opt.noOfIdleSessions; ++i) {
-		IdleSession *idleSession = new IdleSession(accountProvider, networkFactories[i % networkFactories.size()], &trustChecker);
+		IdleSession *idleSession = new IdleSession(accountProvider, networkFactories[i % networkFactories.size()], &trustChecker, opt.noCompression, opt.noTLS);
 		idleSession->onReady.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkSessionReady, this, idleSession));
 		idleSession->onDoneBenchmarking.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkSessionDone, this, idleSession));
 		idleSessions.push_back(idleSession);
@@ -146,6 +146,8 @@ void LatencyWorkloadBenchmark::finishSessions() {
 	std::cout << "Active Connections:     " << opt.noOfActiveSessions << std::endl;
 	std::cout << "Idle Connections:       " << opt.noOfIdleSessions << std::endl;
 	std::cout << "Stanzas per Connection: " << opt.stanzasPerConnection << std::endl;
+	std::cout << "Stream Compression:     " << (opt.noCompression ? "Not Used" : "Used If Available") << std::endl;
+	std::cout << "TLS:                    " << (opt.noTLS ? "Not Used" : "Used If Available") << std::endl;
 
 	std::cout << std::endl;
 	std::cout << std::endl;

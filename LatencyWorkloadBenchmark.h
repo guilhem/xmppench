@@ -22,6 +22,8 @@ public:
 		int stanzasPerConnection;
 		int parallelLogins;
 		std::string bodymessage;
+		bool noTLS;
+		bool noCompression;
 	};
 
 public:

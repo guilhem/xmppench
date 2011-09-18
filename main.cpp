@@ -118,6 +118,8 @@ int main(int argc, char *argv[]) {
 			("ip", po::value<std::string>(&ip),												"specify the IP to connect to; overrides DNS lookups;"
 																							" required with jobs > 1")
 			("jobs", po::value<int>(&jobs)->default_value(1),									"number of threads to run ! EXPERIMENTAL !")
+			("nocomp", po::value<bool>(&options.noCompression)->default_value(false),					"prevent use of stream compression")
+			("notls", po::value<bool>(&options.noTLS)->default_value(false),							"prevent use of TLS")
 			("plogins", po::value<int>(&options.parallelLogins)->default_value(2),			"number of parallel logins")
 			("stanzas", po::value<int>(&options.stanzasPerConnection)->default_value(1000),	"stanzas to send per connection")
 			("waitatstart", po::value<bool>(&waitAtBeginning),									"waits at the beginning on keyboard input")

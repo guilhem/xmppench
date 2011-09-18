@@ -16,7 +16,7 @@
 
 class ActiveSessionPair : public BenchmarkSession {
 public:
-	ActiveSessionPair(AccountDataProvider* accountDataProvider, Swift::NetworkFactories* networkFactories, Swift::CertificateTrustChecker* trustChecker, int messagesPerSecond, int messages, std::string body);
+	ActiveSessionPair(AccountDataProvider* accountDataProvider, Swift::NetworkFactories* networkFactories, Swift::CertificateTrustChecker* trustChecker, int messagesPerSecond, int messages, std::string body, bool noCompression, bool noTLS);
 	virtual ~ActiveSessionPair();
 
 	virtual void start();
@@ -65,6 +65,8 @@ private:
 	int messagesPerSecond;
 	int messages;
 	std::string body;
+	bool noCompression;
+	bool noTLS;
 
 	int connectedClients;
 

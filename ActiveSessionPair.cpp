@@ -10,8 +10,8 @@
 
 using namespace Swift;
 
-ActiveSessionPair::ActiveSessionPair(AccountDataProvider* accountDataProvider, Swift::NetworkFactories* networkFactories, Swift::CertificateTrustChecker* trustChecker, int messagesPerSecond, int messages, std::string body) :
-	accountDataProvider(accountDataProvider), networkFactories(networkFactories), trustChecker(trustChecker), messagesPerSecond(messagesPerSecond), messages(messages), body(body), connectedClients(0), noOfSendMessagesA(0), noOfReceivedMessagesA(0), noOfSendMessagesB(0), noOfReceivedMessagesB(0), bytesReceived(0) {
+ActiveSessionPair::ActiveSessionPair(AccountDataProvider* accountDataProvider, Swift::NetworkFactories* networkFactories, Swift::CertificateTrustChecker* trustChecker, int messagesPerSecond, int messages, std::string body, bool noCompression, bool noTLS) :
+	accountDataProvider(accountDataProvider), networkFactories(networkFactories), trustChecker(trustChecker), messagesPerSecond(messagesPerSecond), messages(messages), body(body), noCompression(noCompression), noTLS(noTLS), connectedClients(0), noOfSendMessagesA(0), noOfReceivedMessagesA(0), noOfSendMessagesB(0), noOfReceivedMessagesB(0), bytesReceived(0) {
 
 	AccountDataProvider::Account accA = accountDataProvider->getAccount();
 	AccountDataProvider::Account accB = accountDataProvider->getAccount();
@@ -44,6 +44,8 @@ ActiveSessionPair::~ActiveSessionPair() {
 void ActiveSessionPair::start() {
 	ClientOptions options;
 	options.allowPLAINWithoutTLS = true;
+	options.useStreamCompression = !noCompression;
+	options.useTLS = noTLS ? ClientOptions::NeverUseTLS : ClientOptions::UseTLSWhenAvailable;
 
 	clientA->connect(options);
 	clientB->connect(options);

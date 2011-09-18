@@ -9,7 +9,7 @@
 
 class IdleSession : public BenchmarkSession {
 public:
-	IdleSession(AccountDataProvider* accountDataProvider, Swift::NetworkFactories* networkFactories, Swift::CertificateTrustChecker* trustChecker);
+	IdleSession(AccountDataProvider* accountDataProvider, Swift::NetworkFactories* networkFactories, Swift::CertificateTrustChecker* trustChecker, bool noCompression, bool noTLS);
 	virtual ~IdleSession();
 
 	virtual void start();
@@ -22,4 +22,6 @@ private:
 
 private:
 	Swift::CoreClient* client;
+	bool noCompression;
+	bool noTLS;
 };
