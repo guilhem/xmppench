@@ -58,46 +58,9 @@ private:
 	unsigned long counter;
 };
 
-class WorkerLoop {
-public:
-	WorkerLoop(const std::string& ip) : thread(0), eventLoop() {
-		networkFactories = new ThreadSafeNetworkFactories(&eventLoop, ip);
-		//networkFactories = new BoostNetworkFactories(&eventLoop);
-		/*if (ip.empty()) {
-			networkFactories = new BoostNetworkFactories(&eventLoop);
-		} else {
-			networkFactories = new ThreadSafeNetworkFactories(&eventLoop, ip);
-		}*/
-	}
-
-	~WorkerLoop() {
-		delete networkFactories;
-		delete thread;
-	}
-
-	void start() {
-		thread = new boost::thread(boost::bind(&WorkerLoop::run, this));
-	}
-
-	void wait() {
-		if (thread) thread->join();
-	}
-
-	NetworkFactories* getNetworkFactories() {
-		return networkFactories;
-	}
-
-public:
-	void run() {
-		eventLoop.run();
-	}
-
-private:
-	std::string ip;
-	boost::thread* thread;
-	SimpleEventLoop eventLoop;
-	NetworkFactories *networkFactories;
-};
+void eventLoopRunner(SimpleEventLoop* eventLoop) {
+	eventLoop->run();
+}
 
 int main(int argc, char *argv[]) {
 	std::string hostname;
@@ -162,33 +125,26 @@ int main(int argc, char *argv[]) {
 
 	}
 
-	std::vector<WorkerLoop*> workers;
+	std::vector<SimpleEventLoop*> eventLoops;
 	std::vector<NetworkFactories*> networkFactories;
-	for (int n = 0; n < jobs - 1; ++n) {
-		WorkerLoop *worker = new WorkerLoop(ip);
-		workers.push_back(worker);
-		networkFactories.push_back(worker->getNetworkFactories());
-	}
 
-	WorkerLoop foo(ip);
-	networkFactories.push_back(foo.getNetworkFactories());
+	for (int n = 0; n < jobs; ++n) {
+		SimpleEventLoop* eventLoop = new SimpleEventLoop();
+		NetworkFactories* facatory = new ThreadSafeNetworkFactories(eventLoop, ip);
+		eventLoops.push_back(eventLoop);
+		networkFactories.push_back(facatory);
+	}
 
 	ContinousAccountProivder accountProvider("localhost");
 
 	LatencyWorkloadBenchmark benchmark(networkFactories, &accountProvider, options);
 
-	for (int n = 0; n < jobs - 1; ++n) {
-		workers[n]->start();
-	}
-	foo.run();
-	/*
+	boost::thread_group threadGroup;
 
-	while(!workers.empty()) {
-		std::cout << "Foo" << std::endl;
-		WorkerLoop *worker = workers.back();
-		worker->wait();
-		delete worker;
-		workers.pop_back();
-	}*/
+	for (int n = 0; n < jobs; ++n) {
+		threadGroup.add_thread(new boost::thread(eventLoopRunner, eventLoops[n]));
+	}
+	threadGroup.join_all();
+
 	return 0;
 }
