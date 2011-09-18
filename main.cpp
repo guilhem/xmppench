@@ -31,6 +31,7 @@
 
 #include "AccountDataProvider.h"
 #include "LatencyWorkloadBenchmark.h"
+#include "ThreadSafeNetworkFactories.h"
 
 using namespace Swift;
 namespace po = boost::program_options;
@@ -58,10 +59,18 @@ private:
 
 class WorkerLoop {
 public:
-	WorkerLoop() : thread(0), eventLoop(), networkFactories(&eventLoop) { }
+	WorkerLoop(const std::string& ip) : thread(0), eventLoop() {
+		networkFactories = new ThreadSafeNetworkFactories(&eventLoop, ip);
+		//networkFactories = new BoostNetworkFactories(&eventLoop);
+		/*if (ip.empty()) {
+			networkFactories = new BoostNetworkFactories(&eventLoop);
+		} else {
+			networkFactories = new ThreadSafeNetworkFactories(&eventLoop, ip);
+		}*/
+	}
 
 	~WorkerLoop() {
-		if (thread) thread->join();
+		delete networkFactories;
 		delete thread;
 	}
 
@@ -69,23 +78,29 @@ public:
 		thread = new boost::thread(boost::bind(&WorkerLoop::run, this));
 	}
 
-	NetworkFactories* getNetworkFactories() {
-		return &networkFactories;
+	void wait() {
+		if (thread) thread->join();
 	}
 
-private:
+	NetworkFactories* getNetworkFactories() {
+		return networkFactories;
+	}
+
+public:
 	void run() {
 		eventLoop.run();
 	}
 
 private:
+	std::string ip;
 	boost::thread* thread;
 	SimpleEventLoop eventLoop;
-	BoostNetworkFactories networkFactories;
+	NetworkFactories *networkFactories;
 };
 
 int main(int argc, char *argv[]) {
 	std::string hostname;
+	std::string ip;
 	std::string bodyfile;
 	bool waitAtBeginning;
 	int jobs = 1;
@@ -99,7 +114,9 @@ int main(int argc, char *argv[]) {
 			("help",																			"produce help message")
 			("hostname", po::value<std::string>(&hostname)->default_value("localhost"),		"hostname of benchmarked server")
 			("idles", po::value<int>(&options.noOfIdleSessions)->default_value(8000),			"number of idle connections")
-			//("jobs", po::value<int>(&jobs)->default_value(1),									"number of threads to run")
+			("ip", po::value<std::string>(&ip),												"specify the IP to connect to; overrides DNS lookups;"
+																							" required with jobs > 1")
+			("jobs", po::value<int>(&jobs)->default_value(1),									"number of threads to run ! EXPERIMENTAL !")
 			("plogins", po::value<int>(&options.parallelLogins)->default_value(2),			"number of parallel logins")
 			("stanzas", po::value<int>(&options.stanzasPerConnection)->default_value(1000),	"stanzas to send per connection")
 			("waitatstart", po::value<bool>(&waitAtBeginning),									"waits at the beginning on keyboard input")
@@ -119,23 +136,41 @@ int main(int argc, char *argv[]) {
 		std::cin >> c;
 	}
 
+	if (jobs > 1 && ip.empty()) {
+		std::cout << "Error: You have to specify the IP of the server (use --ip) if jobs is greater than 1." << std::endl;
+		return 1;
+	}
+	if (jobs > 1) {
+		std::cout << "Warning: Running multiple worker threads is an experimental feature." << std::endl;
+	}
+
 	std::vector<WorkerLoop*> workers;
 	std::vector<NetworkFactories*> networkFactories;
-	for (int n = 0; n < jobs; ++n) {
-		WorkerLoop *worker = new WorkerLoop;
+	for (int n = 0; n < jobs - 1; ++n) {
+		WorkerLoop *worker = new WorkerLoop(ip);
 		workers.push_back(worker);
 		networkFactories.push_back(worker->getNetworkFactories());
 	}
+
+	WorkerLoop foo(ip);
+	networkFactories.push_back(foo.getNetworkFactories());
 
 	ContinousAccountProivder accountProvider("localhost");
 
 	LatencyWorkloadBenchmark benchmark(networkFactories, &accountProvider, options);
 
-	for (int n = 0; n < jobs; ++n) {
+	for (int n = 0; n < jobs - 1; ++n) {
 		workers[n]->start();
 	}
-	for (int n = 0; n < jobs; ++n) {
-		delete workers[n];
-	}
+	foo.run();
+	/*
+
+	while(!workers.empty()) {
+		std::cout << "Foo" << std::endl;
+		WorkerLoop *worker = workers.back();
+		worker->wait();
+		delete worker;
+		workers.pop_back();
+	}*/
 	return 0;
 }

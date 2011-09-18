@@ -53,7 +53,7 @@ void LatencyWorkloadBenchmark::handleBenchmarkSessionReady(BenchmarkSession* ses
 	} else {
 		if (nextActivateSession != sessionsToActivate.end()) {
 			(*nextActivateSession)->start();
-			nextActivateSession++;
+			++nextActivateSession;
 		}
 	}
 }

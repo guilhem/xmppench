@@ -19,7 +19,9 @@ SOURCES += main.cpp \
     LatencyWorkloadBenchmark.cpp \
     ActiveSessionPair.cpp \
     DateTime.cpp \
-    IdleSession.cpp
+    IdleSession.cpp \
+    ThreadSafeNetworkFactories.cpp \
+    StaticDomainNameResolver.cpp
 
 LIBS += -L/Users/tobias/dev/rep/swift-trunk/Swiften -L/Users/tobias/dev/rep/swift-trunk/3rdParty/Boost -L/Users/tobias/dev/rep/swift-trunk/3rdParty/LibIDN -lSwiften -lSwiften_Boost -lSwiften_IDN -lxml2 -lz -lssl -lcrypto -lresolv
 
@@ -31,7 +33,13 @@ HEADERS += \
     BenchmarkSession.h \
     ActiveSessionPair.h \
     DateTime.h \
-    IdleSession.h
+    IdleSession.h \
+    ThreadSafeNetworkFactories.h \
+    StaticDomainNameResolver.h
+
+
+
+
 
 
 
