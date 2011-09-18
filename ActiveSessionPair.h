@@ -1,7 +1,8 @@
 #pragma once
 
 #include <boost/thread/thread.hpp>
-#include "DateTime.h"
+#include <boost/date_time/posix_time/ptime.hpp>
+#include <boost/date_time/microsec_time_clock.hpp>
 
 #include <Swiften/TLS/BlindCertificateTrustChecker.h>
 #include <Swiften/Client/CoreClient.h>
@@ -46,13 +47,13 @@ private:
 
 private:
 	struct MessageStamp {
-		MessageStamp(const std::string& text) : text(text) {}
-		MessageStamp(const Swift::Message::ref msg) {
+		MessageStamp(const std::string& text) : text(text), timestamp(boost::posix_time::microsec_clock::local_time()) {}
+		MessageStamp(const Swift::Message::ref msg) : timestamp(boost::posix_time::microsec_clock::local_time()) {
 			text = msg->getSubject();
 		}
 
-		Time timestamp;
 		std::string text;
+		boost::posix_time::ptime timestamp;
 	};
 
 	void calculateLatencies(std::list<MessageStamp>& sent, std::list<MessageStamp>& received, std::vector<double>& latencies);
@@ -90,7 +91,7 @@ private:
 	int noOfReceivedMessagesB;
 	Swift::Timer::ref messageTimeoutB;
 
-	Time begin;
-	Time end;
+	boost::posix_time::ptime begin;
+	boost::posix_time::ptime end;
 	boost::uintmax_t bytesReceived;
 };

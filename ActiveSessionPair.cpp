@@ -59,7 +59,7 @@ void ActiveSessionPair::benchmark() {
 	clientB->onMessageReceived.connect(boost::bind(&ActiveSessionPair::handleMessageReceivedB, this, _1));
 	clientB->onDataRead.connect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
 
-	begin.now();
+	begin = boost::posix_time::microsec_clock::local_time();
 	sendMessageA();
 	sendMessageB();
 }
@@ -177,7 +177,7 @@ BenchmarkSession::LatencyInfo ActiveSessionPair::getLatencyResults() {
 	}
 	info.avgSeconds /= info.stanzas;
 
-	Time benchmarkDuration = end - begin;
+	boost::posix_time::time_duration benchmarkDuration = end - begin;
 	info.bytesPerSecond = (double)bytesReceived / benchmarkDuration.seconds();
 	info.stanzasPerSecond = (double)info.stanzas / benchmarkDuration.seconds();
 
@@ -185,17 +185,17 @@ BenchmarkSession::LatencyInfo ActiveSessionPair::getLatencyResults() {
 }
 
 void ActiveSessionPair::calculateLatencies(std::list<MessageStamp>& sent, std::list<MessageStamp>& received, std::vector<double>& latencies) {
-	std::map<std::string, Time> receivedMap;
+	std::map<std::string, boost::posix_time::ptime> receivedMap;
 	for (std::list<MessageStamp>::iterator i = received.begin(); i != received.end(); ++i) {
 		receivedMap[i->text] = i->timestamp;
 	}
 
 	while(!sent.empty()) {
 		MessageStamp sentStamp = sent.front();
-		std::map<std::string, Time>::iterator receivedTime = receivedMap.find(sentStamp.text);
+		std::map<std::string, boost::posix_time::ptime>::iterator receivedTime = receivedMap.find(sentStamp.text);
 		if (receivedTime != receivedMap.end()) {
-			Time latency = receivedTime->second - sentStamp.timestamp;
-			latencies.push_back(latency.seconds());
+			boost::posix_time::time_duration latency = receivedTime->second - sentStamp.timestamp;
+			latencies.push_back((double)latency.seconds() + ((double)latency.total_microseconds()/1000/1000));
 		} else {
 			std::cout << "Message with subject = " << sentStamp.text << " didn't get through!" << std::endl;
 		}
@@ -208,7 +208,7 @@ void ActiveSessionPair::checkIfDone() {
 		noOfReceivedMessagesB >= messages) {
 		clientA->onDataRead.connect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
 		clientB->onDataRead.connect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
-		end.now();
+		end = boost::posix_time::microsec_clock::local_time();
 		onDoneBenchmarking();
 		done = true;
 	}
