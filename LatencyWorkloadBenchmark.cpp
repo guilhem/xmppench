@@ -12,7 +12,7 @@ LatencyWorkloadBenchmark::LatencyWorkloadBenchmark(std::vector<Swift::NetworkFac
 
 	// create active sessions
 	for (int i = 0; i < opt.noOfActiveSessions / 2; ++i) {
-		ActiveSessionPair *activePair = new ActiveSessionPair(accountProvider, networkFactories[i % networkFactories.size()], &trustChecker, 100, opt.stanzasPerConnection, "Hello there.");
+		ActiveSessionPair *activePair = new ActiveSessionPair(accountProvider, networkFactories[i % networkFactories.size()], &trustChecker, 100, opt.stanzasPerConnection, opt.bodymessage);
 		activePair->onReady.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkSessionReady, this, activePair));
 		activePair->onDoneBenchmarking.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkSessionDone, this, activePair));
 		activeSessionPairs.push_back(activePair);
@@ -33,7 +33,7 @@ LatencyWorkloadBenchmark::LatencyWorkloadBenchmark(std::vector<Swift::NetworkFac
 	std::cout.flush();
 
 	nextActivateSession = sessionsToActivate.begin();
-	for (size_t n = 0; n < opt.parallelLogins && n < sessionsToActivate.size(); ++n) {
+	for (size_t n = 0; n < (size_t)opt.parallelLogins && n < sessionsToActivate.size(); ++n) {
 		(*nextActivateSession)->start();
 		++nextActivateSession;
 	}

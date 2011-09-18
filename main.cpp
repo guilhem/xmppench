@@ -19,6 +19,7 @@
 
 
 #include <iostream>
+#include <fstream>
 #include <vector>
 
 #include <boost/format.hpp>
@@ -110,7 +111,7 @@ int main(int argc, char *argv[]) {
 	po::options_description desc("Allowed options");
 	desc.add_options()
 			("actives", po::value<int>(&options.noOfActiveSessions)->default_value(2000),		"number of active connections")
-			("bodyfile", po::value<std::string>(&bodyfile),									"file to read the body message from")
+			("bodyfile", po::value<std::string>(&bodyfile),									"file to read the (unchecked!) body message from")
 			("help",																			"produce help message")
 			("hostname", po::value<std::string>(&hostname)->default_value("localhost"),		"hostname of benchmarked server")
 			("idles", po::value<int>(&options.noOfIdleSessions)->default_value(8000),			"number of idle connections")
@@ -142,6 +143,21 @@ int main(int argc, char *argv[]) {
 	}
 	if (jobs > 1) {
 		std::cout << "Warning: Running multiple worker threads is an experimental feature." << std::endl;
+	}
+
+	if (!bodyfile.empty()) {
+		std::ifstream inputStream(bodyfile.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
+
+		std::ifstream::pos_type fSize = inputStream.tellg();
+		inputStream.seekg(0, std::ios::beg);
+
+		std::vector<char> bytes(fSize);
+		inputStream.read(&bytes[0], fSize);
+
+		options.bodymessage = std::string(&bytes[0], fSize);
+	} else {
+		options.bodymessage = "Hey. You forgot to specify a body message.";
+
 	}
 
 	std::vector<WorkerLoop*> workers;
