@@ -88,7 +88,6 @@ std::string timeToString(double seconds) {
 }
 
 std::string speedToString(double speed, std::string unit) {
-
 	static const char *siPrefix[] = {"", "k", "M", "G", "T", NULL};
 	int power = 0;
 
