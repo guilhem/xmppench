@@ -1,15 +1,15 @@
 #pragma once
 
-#include <boost/thread/thread.hpp>
-#include <boost/date_time/posix_time/ptime.hpp>
 #include <boost/date_time/microsec_time_clock.hpp>
+#include <boost/date_time/posix_time/ptime.hpp>
+#include <boost/thread/thread.hpp>
 
-#include <Swiften/TLS/BlindCertificateTrustChecker.h>
-#include <Swiften/Client/CoreClient.h>
-#include <Swiften/Client/ClientError.h>
 #include <Swiften/Base/IDGenerator.h>
+#include <Swiften/Client/ClientError.h>
+#include <Swiften/Client/CoreClient.h>
 #include <Swiften/Elements/Message.h>
 #include <Swiften/Network/Timer.h>
+#include <Swiften/TLS/BlindCertificateTrustChecker.h>
 
 #include "AccountDataProvider.h"
 #include "BenchmarkSession.h"

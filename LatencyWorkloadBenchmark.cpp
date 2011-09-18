@@ -1,11 +1,10 @@
 #include "LatencyWorkloadBenchmark.h"
 
-#include "BenchmarkSession.h"
-#include "ActiveSessionPair.h"
-#include "IdleSession.h"
-
 #include <boost/format.hpp>
 
+#include "ActiveSessionPair.h"
+#include "BenchmarkSession.h"
+#include "IdleSession.h"
 
 LatencyWorkloadBenchmark::LatencyWorkloadBenchmark(std::vector<Swift::NetworkFactories*> networkFactories, AccountDataProvider* accountProvider, Options& opt) : networkFactories(networkFactories), accountProvider(accountProvider), opt(opt) {
 	std::cout << "Creating sessions...";

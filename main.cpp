@@ -18,16 +18,16 @@
 
 
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <vector>
 
 #include <boost/format.hpp>
 #include <boost/program_options.hpp>
 #include <boost/thread.hpp>
 
-#include <Swiften/JID/JID.h>
 #include <Swiften/EventLoop/SimpleEventLoop.h>
+#include <Swiften/JID/JID.h>
 #include <Swiften/Network/BoostNetworkFactories.h>
 
 #include "AccountDataProvider.h"

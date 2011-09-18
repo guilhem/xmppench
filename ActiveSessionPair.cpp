@@ -1,11 +1,12 @@
 #include "ActiveSessionPair.h"
 
-#include <Swiften/Base/SafeByteArray.h>
-#include <Swiften/Network/NetworkFactories.h>
-#include <Swiften/TLS/CertificateTrustChecker.h>
-#include <Swiften/Elements/Message.h>
-#include <Swiften/Network/TimerFactory.h>
 #include <algorithm>
+
+#include <Swiften/Base/SafeByteArray.h>
+#include <Swiften/Elements/Message.h>
+#include <Swiften/Network/NetworkFactories.h>
+#include <Swiften/Network/TimerFactory.h>
+#include <Swiften/TLS/CertificateTrustChecker.h>
 
 using namespace Swift;
 

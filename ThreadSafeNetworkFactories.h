@@ -1,10 +1,10 @@
 #pragma once
 
-#include "StaticDomainNameResolver.h"
-
 #include <Swiften/EventLoop/EventLoop.h>
 #include <Swiften/Network/BoostNetworkFactories.h>
 #include <Swiften/Network/NetworkFactories.h>
+
+#include "StaticDomainNameResolver.h"
 
 class ThreadSafeNetworkFactories : public Swift::NetworkFactories {
 public:

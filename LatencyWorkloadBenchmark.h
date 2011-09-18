@@ -1,18 +1,18 @@
 #pragma once
 
+#include <vector>
+
+#include <boost/shared_ptr.hpp>
+
 #include <Swiften/Client/Client.h>
 #include <Swiften/JID/JID.h>
 #include <Swiften/Network/NetworkFactories.h>
 #include <Swiften/TLS/BlindCertificateTrustChecker.h>
 
-#include <vector>
-#include <boost/shared_ptr.hpp>
-
 #include "AccountDataProvider.h"
-#include "BenchmarkSession.h"
 #include "ActiveSessionPair.h"
+#include "BenchmarkSession.h"
 #include "IdleSession.h"
-
 
 class LatencyWorkloadBenchmark {
 public:
