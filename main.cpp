@@ -133,7 +133,7 @@ int main(int argc, char *argv[]) {
 		networkFactories.push_back(factory);
 	}
 
-	ContinousAccountProivder accountProvider("localhost");
+	ContinousAccountProivder accountProvider(hostname);
 
 	LatencyWorkloadBenchmark benchmark(networkFactories, &accountProvider, options);
 
