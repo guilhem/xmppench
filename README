@@ -1,0 +1,29 @@
+xmppench - XMPP Server Benchmark
+================================
+
+License:
+--------
+This tool falls under GPLv3 license, see gpl-3.0.txt, due to Swiften's licensing.
+
+Dependencies:
+-------------
+- Swiften
+- Boost
+
+Building Instructions:
+----------------------
+1. Adjust Makefile to your needs; i.e. so that xmppench builds
+2. Run make
+
+Alternatively you can adjust the qmake project file and build it using qmake. That requires heavy Qt though.
+
+
+Help:
+-----
+Run xmppench --help
+
+Author:
+-------
+Tobias Markmann
+xmpp:tm@ayena.de
+mailto:tm@ayena.de
