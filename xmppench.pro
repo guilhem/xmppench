@@ -18,7 +18,6 @@ TEMPLATE = app
 SOURCES += main.cpp \
     LatencyWorkloadBenchmark.cpp \
     ActiveSessionPair.cpp \
-    DateTime.cpp \
     IdleSession.cpp \
     ThreadSafeNetworkFactories.cpp \
     StaticDomainNameResolver.cpp
@@ -32,10 +31,10 @@ HEADERS += \
     AccountDataProvider.h \
     BenchmarkSession.h \
     ActiveSessionPair.h \
-    DateTime.h \
     IdleSession.h \
     ThreadSafeNetworkFactories.h \
     StaticDomainNameResolver.h
+
 
 
 
