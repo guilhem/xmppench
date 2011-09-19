@@ -130,7 +130,12 @@ int main(int argc, char *argv[]) {
 
 	for (int n = 0; n < jobs; ++n) {
 		SimpleEventLoop* eventLoop = new SimpleEventLoop();
-		NetworkFactories* facatory = new ThreadSafeNetworkFactories(eventLoop, ip);
+		NetworkFactories* facatory;
+		if (jobs > 1) {
+			factory = new ThreadSafeNetworkFactories(eventLoop, ip);
+		} else {
+			factory = new BoostNetworkFactories(eventLoop);
+		}
 		eventLoops.push_back(eventLoop);
 		networkFactories.push_back(facatory);
 	}
