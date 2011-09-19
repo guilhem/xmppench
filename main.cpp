@@ -20,6 +20,8 @@
 #include "LatencyWorkloadBenchmark.h"
 #include "ThreadSafeNetworkFactories.h"
 
+#define XMPPECHN_VERSION_STRING "0.1"
+
 using namespace Swift;
 namespace po = boost::program_options;
 
@@ -64,14 +66,14 @@ int main(int argc, char *argv[]) {
 			("help",																			"produce help message")
 			("hostname", po::value<std::string>(&hostname)->default_value("localhost"),		"hostname of benchmarked server")
 			("idles", po::value<int>(&options.noOfIdleSessions)->default_value(8000),			"number of idle connections")
-			("ip", po::value<std::string>(&ip),												"specify the IP to connect to; overrides DNS lookups;"
-																							" required with jobs > 1")
+			("ip", po::value<std::string>(&ip),												"specify the IP to connect to; overrides DNS lookups; required with jobs > 1")
 			("jobs", po::value<int>(&jobs)->default_value(1),									"number of threads to run ! EXPERIMENTAL !")
-			("nocomp", po::value<bool>(&options.noCompression)->default_value(false),					"prevent use of stream compression")
-			("notls", po::value<bool>(&options.noTLS)->default_value(false),							"prevent use of TLS")
+			("nocomp", po::value<bool>(&options.noCompression)->default_value(false),			"prevent use of stream compression")
+			("notls", po::value<bool>(&options.noTLS)->default_value(false),					"prevent use of TLS")
 			("plogins", po::value<int>(&options.parallelLogins)->default_value(2),			"number of parallel logins")
 			("stanzas", po::value<int>(&options.stanzasPerConnection)->default_value(1000),	"stanzas to send per connection")
-			("waitatstart", po::value<bool>(&waitAtBeginning),									"waits at the beginning on keyboard input")
+			("version",																		"print version number")
+			("waitatstart", po::value<bool>(&waitAtBeginning),								"waits at the beginning on keyboard input")
 	;
 
 	po::variables_map vm;
@@ -80,6 +82,11 @@ int main(int argc, char *argv[]) {
 
 	if (vm.count("help")) {
 		std::cout << desc << "\n";
+		return 1;
+	}
+
+	if (vm.count("version")) {
+		std::cout << "xmppench - XMPP server benchmarking - Version " << XMPPECHN_VERSION_STRING << std::endl;
 		return 1;
 	}
 
@@ -116,14 +123,14 @@ int main(int argc, char *argv[]) {
 
 	for (int n = 0; n < jobs; ++n) {
 		SimpleEventLoop* eventLoop = new SimpleEventLoop();
-		NetworkFactories* facatory;
+		NetworkFactories* factory;
 		if (jobs > 1) {
 			factory = new ThreadSafeNetworkFactories(eventLoop, ip);
 		} else {
 			factory = new BoostNetworkFactories(eventLoop);
 		}
 		eventLoops.push_back(eventLoop);
-		networkFactories.push_back(facatory);
+		networkFactories.push_back(factory);
 	}
 
 	ContinousAccountProivder accountProvider("localhost");

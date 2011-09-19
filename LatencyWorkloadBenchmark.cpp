@@ -135,17 +135,7 @@ void LatencyWorkloadBenchmark::finishSessions() {
 	accumulated.stanzasPerSecond = accumulated.stanzas / duration;
 	//accumulated.stanzasPerSecond /= doneSessions.size();
 	//accumulated.bytesPerSecond /= doneSessions.size();
-
-
-	std::cout << "done" << std::endl;
-
-	std::cout << "Finishing sessions." << std::endl;
-	for(std::vector<BenchmarkSession*>::iterator i = readySessions.begin(); i != readySessions.end(); ++i) {
-		BenchmarkSession* session = *i;
-
-		session->stop();
-	}
-
+	std::cout << "done." << std::endl;
 
 	std::cout << std::endl;
 	std::cout << std::endl;
@@ -171,6 +161,15 @@ void LatencyWorkloadBenchmark::finishSessions() {
 	std::cout << std::endl;
 	std::cout << "Throughput (Stanza): " << speedToString(accumulated.stanzasPerSecond, "Stanzas/Second") << std::endl;
 	std::cout << "Throughput (Data):   " << speedToString(accumulated.bytesPerSecond, "Bytes/Second") << std::endl;
+	std::cout << std::endl;
+	std::cout << std::endl;
 
+	std::cout << "Finishing sessions...";
+	for(std::vector<BenchmarkSession*>::iterator i = readySessions.begin(); i != readySessions.end(); ++i) {
+		BenchmarkSession* session = *i;
+
+		session->stop();
+	}
+	std::cout << "done." << std::endl;
 	exit(0);
 }
