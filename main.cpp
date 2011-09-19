@@ -1,22 +1,8 @@
-// Scenario:
-
-//> Thanks for the discussion. Here are the scenarios that we would be
-//> interested in:
-//>
-//> a) 10K senders/receivers with 20% of them transmitting simulataneously -
-//> get average response time/latency, throughput.
-//>
-//> b) How many senders/receivers transmitting simulataneously will it take to
-//> saturate a server running on a 2 CPU box while keeping average latency <
-//50
-//> milli secs.
-//>
-//> We are not as concerned with the roster list of the senders.
-//> Dave Cridland @ 15:05
-//That's what we've been asked for. 15:05
-//I have no clue how latency's going to hit 50ms without the box having gone into swap, mind. :-)
-
-
+/*
+ * Copyright (c) 2011 Tobias Markmann
+ * Licensed under the GNU General Public License v3.
+ * See gpl-3.0.txt for more information.
+ */
 
 #include <fstream>
 #include <iostream>

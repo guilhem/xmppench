@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2011 Tobias Markmann
+ * Licensed under the GNU General Public License v3.
+ * See gpl-3.0.txt for more information.
+ */
+
 #include "ThreadSafeNetworkFactories.h"
 
 ThreadSafeNetworkFactories::ThreadSafeNetworkFactories(Swift::EventLoop* eventLoop, const std::string& ip) : domainNameResolver(ip), eventLoop(eventLoop), networkFactories(eventLoop) {
