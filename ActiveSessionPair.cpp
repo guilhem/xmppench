@@ -16,8 +16,8 @@
 
 using namespace Swift;
 
-ActiveSessionPair::ActiveSessionPair(AccountDataProvider* accountDataProvider, Swift::NetworkFactories* networkFactories, Swift::CertificateTrustChecker* trustChecker, int messagesPerSecond, int messages, std::string body, bool noCompression, bool noTLS) :
-	accountDataProvider(accountDataProvider), networkFactories(networkFactories), trustChecker(trustChecker), messagesPerSecond(messagesPerSecond), messages(messages), body(body), noCompression(noCompression), noTLS(noTLS), connectedClients(0), noOfSendMessagesA(0), noOfReceivedMessagesA(0), noOfSendMessagesB(0), noOfReceivedMessagesB(0), bytesReceived(0) {
+ActiveSessionPair::ActiveSessionPair(AccountDataProvider* accountDataProvider, Swift::NetworkFactories* networkFactories, Swift::CertificateTrustChecker* trustChecker, int warmUpMessages, int messages, std::string body, bool noCompression, bool noTLS) :
+	accountDataProvider(accountDataProvider), networkFactories(networkFactories), trustChecker(trustChecker), warmUpMessages(warmUpMessages), messages(messages), body(body), noCompression(noCompression), noTLS(noTLS), connectedClients(0), noOfSendMessagesA(0), noOfReceivedMessagesA(0), noOfSendMessagesB(0), noOfReceivedMessagesB(0), bytesReceived(0) {
 
 	AccountDataProvider::Account accA = accountDataProvider->getAccount();
 	AccountDataProvider::Account accB = accountDataProvider->getAccount();
@@ -204,7 +204,7 @@ void ActiveSessionPair::calculateLatencies(std::list<MessageStamp>& sent, std::l
 		std::map<std::string, boost::posix_time::ptime>::iterator receivedTime = receivedMap.find(sentStamp.text);
 		if (receivedTime != receivedMap.end()) {
 			boost::posix_time::time_duration latency = receivedTime->second - sentStamp.timestamp;
-			latencies.push_back((double)latency.seconds() + ((double)latency.total_microseconds()/1000/1000));
+			latencies.push_back(((double)latency.total_microseconds()/1000/1000));
 		} else {
 			std::cout << "Message with subject = " << sentStamp.text << " didn't get through!" << std::endl;
 		}

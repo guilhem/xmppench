@@ -28,6 +28,7 @@ public:
 		int noOfIdleSessions;
 		int noOfActiveSessions;
 		int stanzasPerConnection;
+		int warmupStanzas;
 		int parallelLogins;
 		std::string bodymessage;
 		bool noTLS;

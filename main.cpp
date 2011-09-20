@@ -74,6 +74,7 @@ int main(int argc, char *argv[]) {
 			("stanzas", po::value<int>(&options.stanzasPerConnection)->default_value(1000),	"stanzas to send per connection")
 			("version",																		"print version number")
 			("waitatstart", po::value<bool>(&waitAtBeginning),								"waits at the beginning on keyboard input")
+	//		("wcstanzas", po::value<int>(&options.warmupStanzas)->default_value(0),			"warm up/cool down stanzas")
 	;
 
 	po::variables_map vm;
