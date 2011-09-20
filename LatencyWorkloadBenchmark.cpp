@@ -116,11 +116,11 @@ void LatencyWorkloadBenchmark::finishSessions() {
 		exit(0);
 	}
 
-	std::list<BenchmarkSession*>::iterator i = doneSessions.begin();
+	std::vector<ActiveSessionPair*>::iterator i = activeSessionPairs.begin();
 	BenchmarkSession::LatencyInfo accumulated = (*i)->getLatencyResults();
 	++i;
-	for(; i != doneSessions.end(); ++i) {
-		BenchmarkSession* session = *i;
+	for(; i != activeSessionPairs.end(); ++i) {
+		ActiveSessionPair* session = *i;
 
 		BenchmarkSession::LatencyInfo latency = session->getLatencyResults();
 		if (latency.minSeconds < accumulated.minSeconds) accumulated.minSeconds = latency.minSeconds;
@@ -130,7 +130,7 @@ void LatencyWorkloadBenchmark::finishSessions() {
 		accumulated.stanzas += latency.stanzas;
 	}
 	double duration = (double)benchmarkDuration.total_microseconds()/1000/1000;
-	accumulated.avgSeconds /= doneSessions.size();
+	accumulated.avgSeconds /= activeSessionPairs.size();
 	accumulated.bytesPerSecond = accumulated.receivedBytes / duration;
 	accumulated.stanzasPerSecond = accumulated.stanzas / duration;
 	//accumulated.stanzasPerSecond /= doneSessions.size();
