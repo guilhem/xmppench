@@ -7,6 +7,7 @@
 #include "LatencyWorkloadBenchmark.h"
 
 #include <boost/format.hpp>
+#include <boost/date_time/posix_time/time_formatters.hpp>
 
 #include "ActiveSessionPair.h"
 #include "BenchmarkSession.h"
@@ -128,8 +129,7 @@ void LatencyWorkloadBenchmark::finishSessions() {
 		accumulated.receivedBytes += latency.receivedBytes;
 		accumulated.stanzas += latency.stanzas;
 	}
-
-	double duration = ((double)benchmarkDuration.seconds() + (double)benchmarkDuration.total_microseconds()/1000/1000);
+	double duration = (double)benchmarkDuration.total_microseconds()/1000/1000;
 	accumulated.avgSeconds /= doneSessions.size();
 	accumulated.bytesPerSecond = accumulated.receivedBytes / duration;
 	accumulated.stanzasPerSecond = accumulated.stanzas / duration;
@@ -155,6 +155,7 @@ void LatencyWorkloadBenchmark::finishSessions() {
 
 	std::cout << "- Results -" << std::endl;
 	std::cout << "No. of stanzas:      " << accumulated.stanzas << std::endl;
+	std::cout << "Duration:            " << boost::posix_time::to_simple_string(benchmarkDuration) << std::endl;
 	std::cout << "Minimal latency:     " << timeToString(accumulated.minSeconds) << std::endl;
 	std::cout << "Average latency:     " << timeToString(accumulated.avgSeconds) << std::endl;
 	std::cout << "Maximal latency:     " << timeToString(accumulated.maxSeconds) << std::endl;
