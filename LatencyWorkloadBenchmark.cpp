@@ -138,13 +138,29 @@ void LatencyWorkloadBenchmark::finishSessions() {
 		accumulated.avgSeconds += latency.avgSeconds;
 		accumulated.receivedBytes += latency.receivedBytes;
 		accumulated.stanzas += latency.stanzas;
+		accumulated.latencies.insert(accumulated.latencies.end(), latency.latencies.begin(), latency.latencies.end());
+
+		// helper code
+		accumulated.sum += latency.sum;
+		accumulated.sumOfSquared += latency.sumOfSquared;
 	}
 	double duration = (double)benchmarkDuration.total_microseconds()/1000/1000;
 	accumulated.avgSeconds /= activeSessionPairs.size();
 	accumulated.bytesPerSecond = accumulated.receivedBytes / duration;
 	accumulated.stanzasPerSecond = accumulated.stanzas / duration;
-	//accumulated.stanzasPerSecond /= doneSessions.size();
-	//accumulated.bytesPerSecond /= doneSessions.size();
+
+	double stddev = 0;
+	for (std::vector<double>::iterator i = accumulated.latencies.begin(); i != accumulated.latencies.end(); ++i) {
+		*i = (*i - accumulated.avgSeconds) * (*i - accumulated.avgSeconds);
+		stddev += *i;
+	}
+	stddev /= accumulated.latencies.size();
+	stddev = sqrt(stddev);
+
+	double stddev_alt = 0;
+// stddev = sqrt[ (sumofsquares + 2*avg*sum + count*avg*avg)/avg ]
+	stddev_alt = sqrt((accumulated.sumOfSquared + 2 * accumulated.avgSeconds * accumulated.sum + accumulated.stanzas * accumulated.avgSeconds * accumulated.avgSeconds) / accumulated.avgSeconds);
+
 	std::cout << "done." << std::endl;
 
 	std::cout << std::endl;
@@ -169,6 +185,8 @@ void LatencyWorkloadBenchmark::finishSessions() {
 	std::cout << "Minimal latency:     " << timeToString(accumulated.minSeconds) << std::endl;
 	std::cout << "Average latency:     " << timeToString(accumulated.avgSeconds) << std::endl;
 	std::cout << "Maximal latency:     " << timeToString(accumulated.maxSeconds) << std::endl;
+	std::cout << "Standard deviation:  " << timeToString(stddev) << std::endl;
+	//std::cout << "Stadnard dev. (alt): " << timeToString(stddev_alt) << std::endl;
 	std::cout << std::endl;
 	std::cout << "Throughput (Stanza): " << speedToString(accumulated.stanzasPerSecond, "Stanzas/Second") << std::endl;
 	std::cout << "Throughput (Data):   " << speedToString(accumulated.bytesPerSecond, "Bytes/Second") << std::endl;

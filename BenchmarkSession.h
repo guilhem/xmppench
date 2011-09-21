@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <vector>>
+
 #include <boost/signal.hpp>
 
 class BenchmarkSession {
@@ -14,11 +16,20 @@ public:
 		double minSeconds;
 		double maxSeconds;
 		double avgSeconds;
+		double sdSeconds;
+
+		std::vector<double> latencies;
+
 		unsigned long stanzas;
 
 		double receivedBytes;
 		double bytesPerSecond;
 		double stanzasPerSecond;
+
+		// helpers
+		double sum;
+		double sumOfSquared;
+
 	};
 
 public:

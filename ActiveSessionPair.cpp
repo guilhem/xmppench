@@ -195,6 +195,7 @@ BenchmarkSession::LatencyInfo ActiveSessionPair::getLatencyResults() {
 	std::vector<double> latencies;
 	calculateLatencies(sendMessagesFromA, receivedMessagesB, latencies);
 	calculateLatencies(sendMessagesFromB, receivedMessagesA, latencies);
+	info.latencies = latencies;
 
 	info.stanzas = 0;
 	if (latencies.empty()) {
@@ -204,6 +205,11 @@ BenchmarkSession::LatencyInfo ActiveSessionPair::getLatencyResults() {
 	std::vector<double>::iterator i = latencies.begin();
 	info.stanzas++;
 	info.minSeconds = info.maxSeconds = info.avgSeconds = *i;
+
+	// helper code
+	info.sum = *i;
+	info.sumOfSquared = (*i)*(*i);
+
 	++i;
 	for(; i != latencies.end(); ++i) {
 		if (*i < info.minSeconds) {
@@ -213,6 +219,10 @@ BenchmarkSession::LatencyInfo ActiveSessionPair::getLatencyResults() {
 		}
 		info.avgSeconds += *i;
 		info.stanzas++;
+
+		// helper code
+		info.sum += *i;
+		info.sumOfSquared += (*i) * (*i);
 	}
 	info.avgSeconds /= info.stanzas;
 
