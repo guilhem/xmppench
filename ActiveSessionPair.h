@@ -34,22 +34,23 @@ public:
 private:
 	void prepareMessageTemplate();
 
-	void sendMessageA();
+	void sendMessageFromAToB();
 	void handleConnectedA();
 	void handleDisconnectedA(const boost::optional<Swift::ClientError>&);
-	void handleMessageReceivedA(boost::shared_ptr<Swift::Message>);
+	void handleMessageReceivedByAFromB(boost::shared_ptr<Swift::Message>);
 	void handleMessageTimeoutA();
 
-	void sendMessageB();
+	void sendMessageFromBToA();
 	void handleConnectedB();
 	void handleDisconnectedB(const boost::optional<Swift::ClientError>&);
-	void handleMessageReceivedB(boost::shared_ptr<Swift::Message>);
+	void handleMessageReceivedByBFromA(boost::shared_ptr<Swift::Message>);
 	void handleMessageTimeoutB();
 
 	void handleDataRead(const Swift::SafeByteArray&);
 
 private:
 	inline void checkIfDone();
+	inline void checkIfDoneBenchmarking();
 
 private:
 	struct MessageStamp {
@@ -70,6 +71,7 @@ private:
 	Swift::CertificateTrustChecker* trustChecker;
 	int warmUpMessages;
 	int messages;
+	int totalMessages;
 	std::string body;
 	bool noCompression;
 	bool noTLS;
@@ -77,26 +79,32 @@ private:
 	int connectedClients;
 
 	Swift::IDGenerator idGenerator; // probably a bottleneck due to UUID usage;
+	bool benchmarkingStartedA;
+	bool benchmarkingStartedB;
+	bool benchmarkingDone;
 	bool done;
+
+	bool dataCountingForA;
+	bool dataCountingForB;
 
 	Swift::CoreClient* clientA;
 	std::string messageHeaderA;
 	std::string messageFooterA;
 
-	std::list<MessageStamp> sendMessagesA;
-	int noOfSendMessagesA;
+	std::list<MessageStamp> sendMessagesFromA;
+	int noOfSendMessagesFromAToB;
 	std::list<MessageStamp> receivedMessagesA;
-	int noOfReceivedMessagesA;
+	int noOfReceivedMessagesByAFromB;
 	Swift::Timer::ref messageTimeoutA;
 
 	Swift::CoreClient* clientB;
 	std::string messageHeaderB;
 	std::string messageFooterB;
 
-	std::list<MessageStamp> sendMessagesB;
-	int noOfSendMessagesB;
+	std::list<MessageStamp> sendMessagesFromB;
+	int noOfSendMessagesFromBToA;
 	std::list<MessageStamp> receivedMessagesB;
-	int noOfReceivedMessagesB;
+	int noOfReceivedMessagesByBFromA;
 	Swift::Timer::ref messageTimeoutB;
 
 	boost::posix_time::ptime begin;

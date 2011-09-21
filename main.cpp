@@ -20,6 +20,12 @@
 #include "LatencyWorkloadBenchmark.h"
 #include "ThreadSafeNetworkFactories.h"
 
+
+#include <ctime>
+
+#include <boost/date_time/microsec_time_clock.hpp>
+#include <boost/date_time/posix_time/ptime.hpp>
+
 #define XMPPECHN_VERSION_STRING "0.1"
 
 using namespace Swift;
@@ -74,7 +80,7 @@ int main(int argc, char *argv[]) {
 			("stanzas", po::value<int>(&options.stanzasPerConnection)->default_value(1000),	"stanzas to send per connection")
 			("version",																		"print version number")
 			("waitatstart", po::value<bool>(&waitAtBeginning),								"waits at the beginning on keyboard input")
-	//		("wcstanzas", po::value<int>(&options.warmupStanzas)->default_value(0),			"warm up/cool down stanzas")
+			("wcstanzas", po::value<int>(&options.warmupStanzas)->default_value(0),			"warm up/cool down stanzas")
 	;
 
 	po::variables_map vm;
@@ -144,6 +150,5 @@ int main(int argc, char *argv[]) {
 		threadGroup.add_thread(new boost::thread(eventLoopRunner, eventLoops[n]));
 	}
 	threadGroup.join_all();
-
 	return 0;
 }

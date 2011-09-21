@@ -18,9 +18,11 @@ LatencyWorkloadBenchmark::LatencyWorkloadBenchmark(std::vector<Swift::NetworkFac
 
 	// create active sessions
 	for (int i = 0; i < opt.noOfActiveSessions / 2; ++i) {
-		ActiveSessionPair *activePair = new ActiveSessionPair(accountProvider, networkFactories[i % networkFactories.size()], &trustChecker, 100, opt.stanzasPerConnection, opt.bodymessage, opt.noCompression, opt.noTLS);
+		ActiveSessionPair *activePair = new ActiveSessionPair(accountProvider, networkFactories[i % networkFactories.size()], &trustChecker, opt.warmupStanzas, opt.stanzasPerConnection, opt.bodymessage, opt.noCompression, opt.noTLS);
 		activePair->onReady.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkSessionReady, this, activePair));
 		activePair->onDoneBenchmarking.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkSessionDone, this, activePair));
+		activePair->onBenchmarkStart.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkBegin, this));
+		activePair->onBenchmarkEnd.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkEnd, this));
 		activeSessionPairs.push_back(activePair);
 		sessionsToActivate.push_back(activePair);
 	}
@@ -75,8 +77,17 @@ void LatencyWorkloadBenchmark::handleBenchmarkSessionDone(BenchmarkSession *sess
 	}
 }
 
+void LatencyWorkloadBenchmark::handleBenchmarkBegin() {
+	if (begin.is_not_a_date_time()) {
+		begin = boost::posix_time::microsec_clock::local_time();
+	}
+}
+
+void LatencyWorkloadBenchmark::handleBenchmarkEnd() {
+	end = boost::posix_time::microsec_clock::local_time();
+}
+
 void LatencyWorkloadBenchmark::benchmark() {
-	begin = boost::posix_time::microsec_clock::local_time();
 	for(std::vector<BenchmarkSession*>::iterator i = readySessions.begin(); i != readySessions.end(); ++i) {
 		BenchmarkSession* session = *i;
 		session->benchmark();
@@ -108,7 +119,6 @@ std::string speedToString(double speed, std::string unit) {
 }
 
 void LatencyWorkloadBenchmark::finishSessions() {
-	end = boost::posix_time::microsec_clock::local_time();
 	boost::posix_time::time_duration benchmarkDuration = end - begin;
 	std::cout << "Calculating results...";
 

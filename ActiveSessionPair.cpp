@@ -17,8 +17,10 @@
 using namespace Swift;
 
 ActiveSessionPair::ActiveSessionPair(AccountDataProvider* accountDataProvider, Swift::NetworkFactories* networkFactories, Swift::CertificateTrustChecker* trustChecker, int warmUpMessages, int messages, std::string body, bool noCompression, bool noTLS) :
-	accountDataProvider(accountDataProvider), networkFactories(networkFactories), trustChecker(trustChecker), warmUpMessages(warmUpMessages), messages(messages), body(body), noCompression(noCompression), noTLS(noTLS), connectedClients(0), noOfSendMessagesA(0), noOfReceivedMessagesA(0), noOfSendMessagesB(0), noOfReceivedMessagesB(0), bytesReceived(0) {
-
+	accountDataProvider(accountDataProvider), networkFactories(networkFactories), trustChecker(trustChecker), warmUpMessages(warmUpMessages), messages(messages), body(body), noCompression(noCompression), noTLS(noTLS), connectedClients(0), noOfSendMessagesFromAToB(0), noOfReceivedMessagesByAFromB(0), noOfSendMessagesFromBToA(0), noOfReceivedMessagesByBFromA(0), bytesReceived(0) {
+	benchmarkingStartedA = benchmarkingDone = benchmarkingStartedB = false;
+	dataCountingForA = dataCountingForB = false;
+	totalMessages = messages + 2 * warmUpMessages;
 	AccountDataProvider::Account accA = accountDataProvider->getAccount();
 	AccountDataProvider::Account accB = accountDataProvider->getAccount();
 
@@ -63,14 +65,11 @@ void ActiveSessionPair::stop() {
 }
 
 void ActiveSessionPair::benchmark() {
-	clientA->onMessageReceived.connect(boost::bind(&ActiveSessionPair::handleMessageReceivedA, this, _1));
-	clientA->onDataRead.connect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
-	clientB->onMessageReceived.connect(boost::bind(&ActiveSessionPair::handleMessageReceivedB, this, _1));
-	clientB->onDataRead.connect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
+	clientA->onMessageReceived.connect(boost::bind(&ActiveSessionPair::handleMessageReceivedByAFromB, this, _1));
+	clientB->onMessageReceived.connect(boost::bind(&ActiveSessionPair::handleMessageReceivedByBFromA, this, _1));
 
-	begin = boost::posix_time::microsec_clock::local_time();
-	sendMessageA();
-	sendMessageB();
+	sendMessageFromAToB();
+	sendMessageFromBToA();
 }
 
 void ActiveSessionPair::prepareMessageTemplate() {
@@ -81,7 +80,7 @@ void ActiveSessionPair::prepareMessageTemplate() {
 	messageFooterB = "</subject></message>";
 }
 
-void ActiveSessionPair::sendMessageA() {
+void ActiveSessionPair::sendMessageFromAToB() {
 	/*
 	Message::ref messageA = Message::ref(new Message());
 	messageA->setBody(body);
@@ -93,15 +92,23 @@ void ActiveSessionPair::sendMessageA() {
 	*/
 
 	std::string id = idGenerator.generateID();
-	sendMessagesA.push_back(MessageStamp(id));
+	if (noOfSendMessagesFromAToB >= warmUpMessages && noOfSendMessagesFromAToB < (totalMessages - warmUpMessages)) {
+		if (!benchmarkingStartedA) {
+			benchmarkingStartedA = true;
+			if (!benchmarkingStartedB) onBenchmarkStart();
+		}
+		sendMessagesFromA.push_back(MessageStamp(id));
+		//std::cout << "sendMessageFromAToB: benchmarked " << noOfSendMessagesFromAToB<< std::endl;
+	}
 	//messageTimeoutA->start();
-	++noOfSendMessagesA;
+	//std::cout << "sendMessageFromAToB: no = " << noOfSendMessagesFromAToB << " benchmarkingStartedA = " << benchmarkingStartedA << std::endl;
+	++noOfSendMessagesFromAToB;
 	clientA->sendData(messageHeaderA);
 	clientA->sendData(id);
 	clientA->sendData(messageFooterA);
 }
 
-void ActiveSessionPair::sendMessageB() {
+void ActiveSessionPair::sendMessageFromBToA() {
 	/*
 	Message::ref messageB = Message::ref(new Message());
 	messageB->setBody(body);
@@ -113,46 +120,69 @@ void ActiveSessionPair::sendMessageB() {
 	*/
 
 	std::string id = idGenerator.generateID();
-	sendMessagesB.push_back(MessageStamp(id));
+	if (noOfSendMessagesFromBToA >= warmUpMessages && noOfSendMessagesFromBToA < (totalMessages - warmUpMessages)) {
+		if (!benchmarkingStartedB) {
+			benchmarkingStartedB = true;
+			if (!benchmarkingStartedB) onBenchmarkStart();
+			//clientB->onDataRead.connect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
+		}
+		sendMessagesFromB.push_back(MessageStamp(id));
+		//std::cout << "sendMessageFromBToA: benchmarked " << noOfSendMessagesFromBToA << std::endl;
+	} else if (noOfReceivedMessagesByBFromA == (totalMessages - warmUpMessages)) {
+		//clientB->onDataRead.disconnect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
+	}
 	//messageTimeoutB->start();
-	++noOfSendMessagesB;
+	//std::cout << "sendMessageFromBToA: no = " << noOfSendMessagesFromBToA << " benchmarkingStartedB = " << benchmarkingStartedB << std::endl;
+	++noOfSendMessagesFromBToA;
 	clientB->sendData(messageHeaderB);
 	clientB->sendData(id);
 	clientB->sendData(messageFooterB);
 }
 
-void ActiveSessionPair::handleMessageReceivedA(boost::shared_ptr<Swift::Message> msg) {
-	//messageTimeoutB->stop();
-	receivedMessagesA.push_back(MessageStamp(msg));
-	++noOfReceivedMessagesA;
-	if (noOfSendMessagesB < messages) {
-		sendMessageB();
+void ActiveSessionPair::handleMessageReceivedByAFromB(boost::shared_ptr<Swift::Message> msg) {
+	receivedMessagesA.push_back((MessageStamp(msg)));
+	++noOfReceivedMessagesByAFromB;
+	if (noOfSendMessagesFromBToA < totalMessages) {
+		sendMessageFromBToA();
+	}
+	if (noOfReceivedMessagesByAFromB == warmUpMessages-1) {
+		clientA->onDataRead.connect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
+	}
+	if (noOfReceivedMessagesByAFromB == messages + warmUpMessages - 1) {
+		clientA->onDataRead.disconnect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
 	}
 
+	if (!benchmarkingDone) checkIfDoneBenchmarking();
 	if (!done) checkIfDone();
 }
-
-void ActiveSessionPair::handleMessageReceivedB(boost::shared_ptr<Swift::Message> msg) {
+void ActiveSessionPair::handleMessageReceivedByBFromA(boost::shared_ptr<Swift::Message> msg) {
 	//messageTimeoutA->stop();
 	receivedMessagesB.push_back(MessageStamp(msg));
-	++noOfReceivedMessagesB;
-	if (noOfSendMessagesA < messages) {
-		sendMessageA();
+	++noOfReceivedMessagesByBFromA;
+	if (noOfSendMessagesFromAToB < totalMessages) {
+		sendMessageFromAToB();
+	}
+	if (noOfReceivedMessagesByBFromA == warmUpMessages-1) {
+		clientB->onDataRead.connect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
+	}
+	if (noOfReceivedMessagesByBFromA == messages + warmUpMessages - 1) {
+		clientB->onDataRead.disconnect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
 	}
 
+	if (!benchmarkingDone) checkIfDoneBenchmarking();
 	if (!done) checkIfDone();
 }
 
 void ActiveSessionPair::handleMessageTimeoutA() {
 	std::cout << this << " - " << clientB->getJID() << " - Message from A to B needed more than 10 seconds." << std::endl;
-	std::cout << this << " - " << "Messages send to B: " << noOfSendMessagesA << std::endl;
-	std::cout << this << " - " << "Messages recv'd by B: " << noOfReceivedMessagesB << std::endl;
+	std::cout << this << " - " << "Messages send to B: " << noOfSendMessagesFromAToB << std::endl;
+	std::cout << this << " - " << "Messages recv'd by B: " << noOfReceivedMessagesByBFromA << std::endl;
 }
 
 void ActiveSessionPair::handleMessageTimeoutB() {
 	std::cout << this << " - " << clientA->getJID() << " - Message from B to A needed more than 10 seconds." << std::endl;
-	std::cout << this << " - " << "Messages send to A: " << noOfSendMessagesB << std::endl;
-	std::cout << this << " - " << "Messages recv'd by A: " << noOfReceivedMessagesA << std::endl;
+	std::cout << this << " - " << "Messages send to A: " << noOfSendMessagesFromBToA << std::endl;
+	std::cout << this << " - " << "Messages recv'd by A: " << noOfReceivedMessagesByAFromB << std::endl;
 }
 
 void ActiveSessionPair::handleDataRead(const SafeByteArray& data) {
@@ -163,8 +193,8 @@ BenchmarkSession::LatencyInfo ActiveSessionPair::getLatencyResults() {
 	BenchmarkSession::LatencyInfo info;
 
 	std::vector<double> latencies;
-	calculateLatencies(sendMessagesA, receivedMessagesB, latencies);
-	calculateLatencies(sendMessagesB, receivedMessagesA, latencies);
+	calculateLatencies(sendMessagesFromA, receivedMessagesB, latencies);
+	calculateLatencies(sendMessagesFromB, receivedMessagesA, latencies);
 
 	info.stanzas = 0;
 	if (latencies.empty()) {
@@ -212,9 +242,17 @@ void ActiveSessionPair::calculateLatencies(std::list<MessageStamp>& sent, std::l
 	}
 }
 
+void ActiveSessionPair::checkIfDoneBenchmarking() {
+	if (!benchmarkingDone && noOfReceivedMessagesByAFromB >= (totalMessages - warmUpMessages) &&
+		noOfReceivedMessagesByBFromA >= (totalMessages - warmUpMessages)) {
+		benchmarkingDone = true;
+		onBenchmarkEnd();
+	}
+}
+
 void ActiveSessionPair::checkIfDone() {
-	if (noOfReceivedMessagesA >= messages &&
-		noOfReceivedMessagesB >= messages) {
+	if (noOfReceivedMessagesByAFromB >= totalMessages &&
+		noOfReceivedMessagesByBFromA >= totalMessages) {
 		clientA->onDataRead.connect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
 		clientB->onDataRead.connect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
 		end = boost::posix_time::microsec_clock::local_time();

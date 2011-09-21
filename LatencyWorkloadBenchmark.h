@@ -42,6 +42,8 @@ public:
 private:
 	void handleBenchmarkSessionReady(BenchmarkSession*);
 	void handleBenchmarkSessionDone(BenchmarkSession*);
+	void handleBenchmarkBegin();
+	void handleBenchmarkEnd();
 
 private:
 	void benchmark();
