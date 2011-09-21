@@ -158,9 +158,8 @@ void LatencyWorkloadBenchmark::finishSessions() {
 	stddev = sqrt(stddev);
 
 	double stddev_alt = 0;
-// stddev = sqrt[ (sumofsquares + 2*avg*sum + count*avg*avg)/avg ]
-	stddev_alt = sqrt((accumulated.sumOfSquared + 2 * accumulated.avgSeconds * accumulated.sum + accumulated.stanzas * accumulated.avgSeconds * accumulated.avgSeconds) / accumulated.avgSeconds);
 
+	stddev_alt = sqrt( (accumulated.sumOfSquared - accumulated.sum * accumulated.sum / accumulated.stanzas) / accumulated.stanzas );
 	std::cout << "done." << std::endl;
 
 	std::cout << std::endl;
