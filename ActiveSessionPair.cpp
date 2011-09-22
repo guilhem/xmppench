@@ -142,14 +142,15 @@ void ActiveSessionPair::sendMessageFromBToA() {
 void ActiveSessionPair::handleMessageReceivedByAFromB(boost::shared_ptr<Swift::Message> msg) {
 	receivedMessagesA.push_back((MessageStamp(msg)));
 	++noOfReceivedMessagesByAFromB;
-	if (noOfSendMessagesFromBToA < totalMessages) {
-		sendMessageFromBToA();
-	}
-	if (noOfReceivedMessagesByAFromB == warmUpMessages-1) {
+	if (noOfReceivedMessagesByAFromB == warmUpMessages) {
 		clientA->onDataRead.connect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
 	}
-	if (noOfReceivedMessagesByAFromB == messages + warmUpMessages - 1) {
+	if (noOfReceivedMessagesByAFromB == messages + warmUpMessages) {
 		clientA->onDataRead.disconnect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
+	}
+
+	if (noOfSendMessagesFromBToA < totalMessages) {
+		sendMessageFromBToA();
 	}
 
 	if (!benchmarkingDone) checkIfDoneBenchmarking();
@@ -159,14 +160,15 @@ void ActiveSessionPair::handleMessageReceivedByBFromA(boost::shared_ptr<Swift::M
 	//messageTimeoutA->stop();
 	receivedMessagesB.push_back(MessageStamp(msg));
 	++noOfReceivedMessagesByBFromA;
-	if (noOfSendMessagesFromAToB < totalMessages) {
-		sendMessageFromAToB();
-	}
-	if (noOfReceivedMessagesByBFromA == warmUpMessages-1) {
+	if (noOfReceivedMessagesByBFromA == warmUpMessages) {
 		clientB->onDataRead.connect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
 	}
-	if (noOfReceivedMessagesByBFromA == messages + warmUpMessages - 1) {
+	if (noOfReceivedMessagesByBFromA == messages + warmUpMessages) {
 		clientB->onDataRead.disconnect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
+	}
+
+	if (noOfSendMessagesFromAToB < totalMessages) {
+		sendMessageFromAToB();
 	}
 
 	if (!benchmarkingDone) checkIfDoneBenchmarking();
@@ -275,6 +277,10 @@ void ActiveSessionPair::handleConnectedA() {
 	++connectedClients;
 	if (connectedClients == 2) {
 		prepareMessageTemplate();
+		if (warmUpMessages == 0) {
+			clientA->onDataRead.connect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
+			clientB->onDataRead.connect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
+		}
 		onReady();
 	}
 }
@@ -289,6 +295,10 @@ void ActiveSessionPair::handleConnectedB() {
 	++connectedClients;
 	if (connectedClients == 2) {
 		prepareMessageTemplate();
+		if (warmUpMessages == 0) {
+			clientA->onDataRead.connect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
+			clientB->onDataRead.connect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
+		}
 		onReady();
 	}
 }
