@@ -36,8 +36,8 @@ public:
 	ContinousAccountProivder(std::string hostname) : hostname(hostname), counter(0) { }
 
 	virtual Account getAccount() {
-		std::string jid  = boost::str( boost::format("%1%@%2%") % counter % hostname );
-		std::string password = boost::str( boost::format("%1%") % counter);
+		std::string jid  = boost::str( boost::format("rabbit%1%@%2%") % counter % hostname );
+		std::string password = boost::str( boost::format("rabbit%1%") % counter);
 		++counter;
 
 		AccountDataProvider::Account acc;

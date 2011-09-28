@@ -27,6 +27,7 @@ void IdleSession::start() {
 	ClientOptions options;
 	options.allowPLAINWithoutTLS = true;
 	options.useStreamCompression = !noCompression;
+	options.useAcks = false;
 	options.useTLS = noTLS ? ClientOptions::NeverUseTLS : ClientOptions::UseTLSWhenAvailable;
 
 	client->connect(options);

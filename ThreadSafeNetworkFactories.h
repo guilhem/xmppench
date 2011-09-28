@@ -21,6 +21,7 @@ public:
 	virtual Swift::ConnectionFactory* getConnectionFactory() const;
 	virtual Swift::DomainNameResolver* getDomainNameResolver() const;
 	virtual Swift::ConnectionServerFactory* getConnectionServerFactory() const;
+	virtual Swift::NATTraverser* getNATTraverser() const {return NULL;}
 
 private:
 	StaticDomainNameResolver domainNameResolver;

@@ -14,14 +14,14 @@
 #include <Swiften/Network/HostAddressPort.h>
 
 
-StaticDomainNameResolver::StaticDomainNameResolver::StaticDomainNameResolver(const std::string& ip) : ip(ip) { }
-StaticDomainNameResolver::StaticDomainNameResolver::~StaticDomainNameResolver() { }
+StaticDomainNameResolver::StaticDomainNameResolver(const std::string& ip) : ip(ip) { }
+StaticDomainNameResolver::~StaticDomainNameResolver() { }
 
-boost::shared_ptr<Swift::DomainNameServiceQuery> StaticDomainNameResolver::StaticDomainNameResolver::createServiceQuery(const std::string&) {
+boost::shared_ptr<Swift::DomainNameServiceQuery> StaticDomainNameResolver::createServiceQuery(const std::string&) {
 	return boost::make_shared<StaticDomainNameServiceQuery>(ip);
 }
 
-boost::shared_ptr<Swift::DomainNameAddressQuery> StaticDomainNameResolver::StaticDomainNameResolver::createAddressQuery(const std::string&) {
+boost::shared_ptr<Swift::DomainNameAddressQuery> StaticDomainNameResolver::createAddressQuery(const std::string&) {
 	return boost::make_shared<StaticDomainNameAddressQuery>(ip);
 }
 
