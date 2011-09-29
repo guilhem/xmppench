@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <vector>>
+#include <vector>
 
 #include <boost/signal.hpp>
 

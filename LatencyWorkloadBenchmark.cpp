@@ -77,6 +77,14 @@ void LatencyWorkloadBenchmark::handleBenchmarkSessionDone(BenchmarkSession *sess
 	}
 }
 
+void LatencyWorkloadBenchmark::handleBenchmarkSessionStopped(BenchmarkSession* session) {
+	yetToBeStoppedSessions.erase(session);
+	if (yetToBeStoppedSessions.empty()) {
+		std::cout << "done." << std::endl;
+		exit(0);
+	}
+}
+
 void LatencyWorkloadBenchmark::handleBenchmarkBegin() {
 	if (begin.is_not_a_date_time()) {
 		begin = boost::posix_time::microsec_clock::local_time();
@@ -193,11 +201,11 @@ void LatencyWorkloadBenchmark::finishSessions() {
 	std::cout << std::endl;
 
 	std::cout << "Finishing sessions...";
+	std::cout.flush();
 	for(std::vector<BenchmarkSession*>::iterator i = readySessions.begin(); i != readySessions.end(); ++i) {
 		BenchmarkSession* session = *i;
-
+		session->onStopped.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkSessionStopped, this, session));
+		yetToBeStoppedSessions.insert(session);
 		session->stop();
 	}
-	std::cout << "done." << std::endl;
-	exit(0);
 }

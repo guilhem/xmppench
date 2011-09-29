@@ -7,6 +7,8 @@
 #pragma once
 
 #include <vector>
+#include <set>
+#include <list>
 
 #include <boost/date_time/microsec_time_clock.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
@@ -42,6 +44,7 @@ public:
 private:
 	void handleBenchmarkSessionReady(BenchmarkSession*);
 	void handleBenchmarkSessionDone(BenchmarkSession*);
+	void handleBenchmarkSessionStopped(BenchmarkSession*);
 	void handleBenchmarkBegin();
 	void handleBenchmarkEnd();
 
@@ -63,6 +66,7 @@ private:
 	std::vector<BenchmarkSession*>::iterator nextActivateSession;
 	std::vector<BenchmarkSession*> sessionsToActivate;
 	std::vector<BenchmarkSession*> readySessions;
+	std::set<BenchmarkSession*> yetToBeStoppedSessions;
 	std::list<BenchmarkSession*> doneSessions;
 
 	boost::mutex handleSessionReadyMutex;

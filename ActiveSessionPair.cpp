@@ -289,6 +289,9 @@ void ActiveSessionPair::handleDisconnectedA(const boost::optional<ClientError>& 
 	if (error) {
 		std::cout << "ActiveSessionPair session disconnected with error ( " << error.get().getType() << " )!" << std::endl;
 	}
+	if (!clientB->isActive()) {
+		onStopped();
+	}
 }
 
 void ActiveSessionPair::handleConnectedB() {
@@ -306,5 +309,8 @@ void ActiveSessionPair::handleConnectedB() {
 void ActiveSessionPair::handleDisconnectedB(const boost::optional<ClientError>& error) {
 	if (error) {
 		std::cout << "ActiveSessionPair session disconnected with error ( " << error.get().getType() << " )!" << std::endl;
+	}
+	if (!clientA->isActive()) {
+		onStopped();
 	}
 }

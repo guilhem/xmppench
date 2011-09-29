@@ -49,4 +49,5 @@ void IdleSession::handleDisconnected(const boost::optional<ClientError>& error) 
 	if (error) {
 		std::cout << "Idle session disconnected with error ( " << error.get().getType() << " )!" << std::endl;
 	}
+	onStopped();
 }

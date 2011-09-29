@@ -18,7 +18,8 @@
 
 #include "AccountDataProvider.h"
 #include "LatencyWorkloadBenchmark.h"
-#include "ThreadSafeNetworkFactories.h"
+#include "BenchmarkNetworkFactories.h"
+#include "BoostEventLoop.h"
 
 
 #include <ctime>
@@ -52,7 +53,7 @@ private:
 	unsigned long counter;
 };
 
-void eventLoopRunner(SimpleEventLoop* eventLoop) {
+void eventLoopRunner(BoostEventLoop* eventLoop) {
 	eventLoop->run();
 }
 
@@ -125,17 +126,17 @@ int main(int argc, char *argv[]) {
 
 	}
 
-	std::vector<SimpleEventLoop*> eventLoops;
+	std::vector<BoostEventLoop*> eventLoops;
 	std::vector<NetworkFactories*> networkFactories;
 
 	for (int n = 0; n < jobs; ++n) {
-		SimpleEventLoop* eventLoop = new SimpleEventLoop();
+		BoostEventLoop* eventLoop = new BoostEventLoop();
 		NetworkFactories* factory;
-		if (jobs > 1) {
-			factory = new ThreadSafeNetworkFactories(eventLoop, ip);
-		} else {
-			factory = new BoostNetworkFactories(eventLoop);
-		}
+		//if (jobs > 1) {
+			factory = new BenchmarkNetworkFactories(eventLoop, ip);
+		//} else {
+		//	factory = new BoostNetworkFactories(eventLoop);
+		//}
 		eventLoops.push_back(eventLoop);
 		networkFactories.push_back(factory);
 	}
