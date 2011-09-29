@@ -53,6 +53,7 @@ void ActiveSessionPair::start() {
 	ClientOptions options;
 	options.allowPLAINWithoutTLS = true;
 	options.useStreamCompression = !noCompression;
+	options.useAcks = false;
 	options.useTLS = noTLS ? ClientOptions::NeverUseTLS : ClientOptions::UseTLSWhenAvailable;
 
 	clientA->connect(options);

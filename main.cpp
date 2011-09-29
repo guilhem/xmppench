@@ -34,11 +34,11 @@ namespace po = boost::program_options;
 
 class ContinousAccountProivder : public AccountDataProvider {
 public:
-	ContinousAccountProivder(std::string hostname) : hostname(hostname), counter(0) { }
+	ContinousAccountProivder(const std::string& hostname, const std::string& rabbitprefix) : hostname(hostname), rabbitprefix(rabbitprefix), counter(0) { }
 
 	virtual Account getAccount() {
-		std::string jid  = boost::str( boost::format("%1%@%2%") % counter % hostname );
-		std::string password = boost::str( boost::format("%1%") % counter);
+		std::string jid  = boost::str( boost::format("%1%%2%@%3%") % rabbitprefix % counter % hostname );
+		std::string password = boost::str( boost::format("%1%%2%") % rabbitprefix % counter);
 		++counter;
 
 		AccountDataProvider::Account acc;
@@ -50,6 +50,7 @@ public:
 
 private:
 	std::string hostname;
+	std::string rabbitprefix;
 	unsigned long counter;
 };
 
@@ -61,6 +62,7 @@ int main(int argc, char *argv[]) {
 	std::string hostname;
 	std::string ip;
 	std::string bodyfile;
+	std::string rabbitprefix;
 	bool waitAtBeginning;
 	int jobs = 1;
 
@@ -82,6 +84,7 @@ int main(int argc, char *argv[]) {
 			("version",																		"print version number")
 			("waitatstart", po::value<bool>(&waitAtBeginning),								"waits at the beginning on keyboard input")
 			("wcstanzas", po::value<int>(&options.warmupStanzas)->default_value(0),			"warm up/cool down stanzas")
+			("rabbitprefix", po::value<std::string>(&rabbitprefix),                         "Prefix to use before number for accounts and passwords")
 	;
 
 	po::variables_map vm;
@@ -145,7 +148,7 @@ int main(int argc, char *argv[]) {
 		networkFactories.push_back(factory);
 	}
 
-	ContinousAccountProivder accountProvider(hostname);
+	ContinousAccountProivder accountProvider(hostname, rabbitprefix);
 
 	LatencyWorkloadBenchmark benchmark(networkFactories, &accountProvider, options);
 
