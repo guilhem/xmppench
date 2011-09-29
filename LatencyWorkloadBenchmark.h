@@ -71,6 +71,7 @@ private:
 
 	boost::mutex handleSessionReadyMutex;
 	boost::mutex handleSessionDoneMutex;
+	boost::mutex handleSessionStoppedMutex;
 
 	boost::posix_time::ptime begin;
 	boost::posix_time::ptime end;

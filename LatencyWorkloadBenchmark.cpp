@@ -78,6 +78,7 @@ void LatencyWorkloadBenchmark::handleBenchmarkSessionDone(BenchmarkSession *sess
 }
 
 void LatencyWorkloadBenchmark::handleBenchmarkSessionStopped(BenchmarkSession* session) {
+	boost::unique_lock<boost::mutex> locak(handleSessionStoppedMutex);
 	yetToBeStoppedSessions.erase(session);
 	if (yetToBeStoppedSessions.empty()) {
 		std::cout << "done." << std::endl;

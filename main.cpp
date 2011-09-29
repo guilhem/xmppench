@@ -111,6 +111,10 @@ int main(int argc, char *argv[]) {
 		std::cout << "Warning: Running multiple worker threads is an experimental feature." << std::endl;
 	}
 
+	if (options.parallelLogins < jobs) {
+		options.parallelLogins = jobs;
+	}
+
 	if (!bodyfile.empty()) {
 		std::ifstream inputStream(bodyfile.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
 

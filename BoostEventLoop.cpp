@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2011 Tobias Markmann
+ * Licensed under the GNU General Public License v3.
+ * See gpl-3.0.txt for more information.
+ */
+
 #include "BoostEventLoop.h"
 
 #include <boost/asio.hpp>
