@@ -27,14 +27,14 @@
 #include <boost/date_time/microsec_time_clock.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
 
-#define XMPPECHN_VERSION_STRING "0.1"
+#define XMPPENCH_VERSION_STRING "0.1"
 
 using namespace Swift;
 namespace po = boost::program_options;
 
-class ContinousAccountProivder : public AccountDataProvider {
+class ContinuousAccountProivder : public AccountDataProvider {
 public:
-	ContinousAccountProivder(const std::string& hostname, const std::string& rabbitprefix) : hostname(hostname), rabbitprefix(rabbitprefix), counter(0) { }
+	ContinuousAccountProivder(const std::string& hostname, const std::string& rabbitprefix) : hostname(hostname), rabbitprefix(rabbitprefix), counter(0) { }
 
 	virtual Account getAccount() {
 		std::string jid  = boost::str( boost::format("%1%%2%@%3%") % rabbitprefix % counter % hostname );
@@ -80,11 +80,11 @@ int main(int argc, char *argv[]) {
 			("nocomp", po::value<bool>(&options.noCompression)->default_value(false),			"prevent use of stream compression")
 			("notls", po::value<bool>(&options.noTLS)->default_value(false),					"prevent use of TLS")
 			("plogins", po::value<int>(&options.parallelLogins)->default_value(2),			"number of parallel logins")
+			("rabbitprefix", po::value<std::string>(&rabbitprefix),							"Prefix to use before number for accounts and passwords")
 			("stanzas", po::value<int>(&options.stanzasPerConnection)->default_value(1000),	"stanzas to send per connection")
 			("version",																		"print version number")
 			("waitatstart", po::value<bool>(&waitAtBeginning),								"waits at the beginning on keyboard input")
 			("wcstanzas", po::value<int>(&options.warmupStanzas)->default_value(0),			"warm up/cool down stanzas")
-			("rabbitprefix", po::value<std::string>(&rabbitprefix),                         "Prefix to use before number for accounts and passwords")
 	;
 
 	po::variables_map vm;
@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (vm.count("version")) {
-		std::cout << "xmppench - XMPP server benchmarking - Version " << XMPPECHN_VERSION_STRING << std::endl;
+		std::cout << "xmppench - XMPP server benchmarking - Version " << XMPPENCH_VERSION_STRING << std::endl;
 		return 1;
 	}
 
@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
 		networkFactories.push_back(factory);
 	}
 
-	ContinousAccountProivder accountProvider(hostname, rabbitprefix);
+	ContinuousAccountProivder accountProvider(hostname, rabbitprefix);
 
 	LatencyWorkloadBenchmark benchmark(networkFactories, &accountProvider, options);
 
