@@ -14,7 +14,7 @@ if env["SCONS_STAGE"] == "build" :
 			"StaticDomainNameResolver.cpp",
 			"IdleSession.cpp",
 			"LatencyWorkloadBenchmark.cpp",
-			"BenchmarkSafeNetworkFactories.cpp",
+			"BenchmarkNetworkFactories.cpp",
 			"BoostEventLoop.cpp",
 	]
 	myenv.Program("xmppench", sources)
