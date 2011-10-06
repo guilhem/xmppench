@@ -104,9 +104,7 @@ void ActiveSessionPair::sendMessageFromAToB() {
 	//messageTimeoutA->start();
 	//std::cout << "sendMessageFromAToB: no = " << noOfSendMessagesFromAToB << " benchmarkingStartedA = " << benchmarkingStartedA << std::endl;
 	++noOfSendMessagesFromAToB;
-	clientA->sendData(messageHeaderA);
-	clientA->sendData(id);
-	clientA->sendData(messageFooterA);
+	clientA->sendData(messageHeaderA + id + messageFooterA);
 }
 
 void ActiveSessionPair::sendMessageFromBToA() {
@@ -135,9 +133,7 @@ void ActiveSessionPair::sendMessageFromBToA() {
 	//messageTimeoutB->start();
 	//std::cout << "sendMessageFromBToA: no = " << noOfSendMessagesFromBToA << " benchmarkingStartedB = " << benchmarkingStartedB << std::endl;
 	++noOfSendMessagesFromBToA;
-	clientB->sendData(messageHeaderB);
-	clientB->sendData(id);
-	clientB->sendData(messageFooterB);
+	clientB->sendData(messageHeaderB + id + messageFooterB);
 }
 
 void ActiveSessionPair::handleMessageReceivedByAFromB(boost::shared_ptr<Swift::Message> msg) {
