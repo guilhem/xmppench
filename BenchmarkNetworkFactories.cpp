@@ -9,8 +9,10 @@
 #include <Swiften/Network/BoostConnectionFactory.h>
 #include <Swiften/Network/BoostConnectionServerFactory.h>
 #include <Swiften/Network/BoostTimerFactory.h>
+#include <Swiften/Parser/PlatformXMLParserFactory.h>
 
 BenchmarkNetworkFactories::BenchmarkNetworkFactories(BoostEventLoop* eventLoop, const std::string& ip) : eventLoop(eventLoop) {
+	xmlParserFactory = new Swift::PlatformXMLParserFactory();
 	connectionServerFactory = new Swift::BoostConnectionServerFactory(eventLoop->getIOService(), eventLoop);
 	domainNameResolver = new StaticDomainNameResolver(ip);
 	connectionFactory = new Swift::BoostConnectionFactory(eventLoop->getIOService(), eventLoop);
@@ -22,6 +24,7 @@ BenchmarkNetworkFactories::~BenchmarkNetworkFactories() {
 	delete connectionFactory;
 	delete domainNameResolver;
 	delete connectionServerFactory;
+	delete xmlParserFactory;
 }
 
 Swift::TimerFactory* BenchmarkNetworkFactories::getTimerFactory() const {
@@ -42,4 +45,8 @@ Swift::ConnectionServerFactory* BenchmarkNetworkFactories::getConnectionServerFa
 
 Swift::NATTraverser* BenchmarkNetworkFactories::getNATTraverser() const {
 	return NULL;
+}
+
+Swift::XMLParserFactory* BenchmarkNetworkFactories::getXMLParserFactory() const {
+	return xmlParserFactory;
 }

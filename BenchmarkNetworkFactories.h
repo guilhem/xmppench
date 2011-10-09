@@ -23,12 +23,14 @@ public:
 	virtual Swift::DomainNameResolver* getDomainNameResolver() const;
 	virtual Swift::ConnectionServerFactory* getConnectionServerFactory() const;
 	virtual Swift::NATTraverser* getNATTraverser() const;
+	virtual Swift::XMLParserFactory* getXMLParserFactory() const;
 
 private:
 	Swift::TimerFactory* timerFactory;
 	Swift::ConnectionFactory* connectionFactory;
 	StaticDomainNameResolver* domainNameResolver;
 	Swift::ConnectionServerFactory* connectionServerFactory;
+	Swift::XMLParserFactory* xmlParserFactory;
 
 	BoostEventLoop *eventLoop;
 };
