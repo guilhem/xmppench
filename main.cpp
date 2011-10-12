@@ -158,5 +158,9 @@ int main(int argc, char *argv[]) {
 		threadGroup.add_thread(new boost::thread(eventLoopRunner, eventLoops[n]));
 	}
 	threadGroup.join_all();
+	for (int i = 0; i < jobs; ++i) {
+		delete eventLoops[i];
+		delete networkFactories[i];
+	}
 	return 0;
 }
