@@ -34,17 +34,11 @@ public:
 private:
 	void prepareMessageTemplate();
 
-	void sendMessageFromAToB();
-	void handleConnectedA();
-	void handleDisconnectedA(const boost::optional<Swift::ClientError>&);
-	void handleMessageReceivedByAFromB(boost::shared_ptr<Swift::Message>);
-	void handleMessageTimeoutA();
-
-	void sendMessageFromBToA();
-	void handleConnectedB();
-	void handleDisconnectedB(const boost::optional<Swift::ClientError>&);
-	void handleMessageReceivedByBFromA(boost::shared_ptr<Swift::Message>);
-	void handleMessageTimeoutB();
+	void sendMessage(int connection);
+	void handleConnected(int connection);
+	void handleDisconnected(int connection, const boost::optional<Swift::ClientError>&);
+	void handleMessageReceived(int connection, boost::shared_ptr<Swift::Message>);
+	void handleMessageTimeout(int connection);
 
 	void handleDataRead(const Swift::SafeByteArray&);
 
@@ -82,28 +76,17 @@ private:
 	bool benchmarkingDone;
 	bool done;
 
-	bool dataCountingForA;
-	bool dataCountingForB;
+	bool dataCounting[2];
 
-	Swift::CoreClient* clientA;
-	std::string messageHeaderA;
-	std::string messageFooterA;
+	Swift::CoreClient* client[2];
+	std::string messageHeader[2];
+	std::string messageFooter[2];
 
-	std::list<MessageStamp> sendMessagesFromA;
-	int noOfSendMessagesFromAToB;
-	std::list<MessageStamp> receivedMessagesA;
-	int noOfReceivedMessagesByAFromB;
-	Swift::Timer::ref messageTimeoutA;
-
-	Swift::CoreClient* clientB;
-	std::string messageHeaderB;
-	std::string messageFooterB;
-
-	std::list<MessageStamp> sendMessagesFromB;
-	int noOfSendMessagesFromBToA;
-	std::list<MessageStamp> receivedMessagesB;
-	int noOfReceivedMessagesByBFromA;
-	Swift::Timer::ref messageTimeoutB;
+	std::list<MessageStamp> sentMessages[2];
+	int noOfSentMessages[2];
+	std::list<MessageStamp> receivedMessages[2];
+	int noOfReceivedMessages[2];
+	Swift::Timer::ref messageTimeout[2];
 
 	boost::posix_time::ptime begin;
 	boost::posix_time::ptime end;
