@@ -79,8 +79,6 @@ private:
 	int connectedClients;
 
 	Swift::IDGenerator idGenerator; // probably a bottleneck due to UUID usage;
-	bool benchmarkingStartedA;
-	bool benchmarkingStartedB;
 	bool benchmarkingDone;
 	bool done;
 

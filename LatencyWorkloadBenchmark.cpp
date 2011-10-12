@@ -21,7 +21,6 @@ LatencyWorkloadBenchmark::LatencyWorkloadBenchmark(std::vector<Swift::NetworkFac
 		ActiveSessionPair *activePair = new ActiveSessionPair(accountProvider, networkFactories[i % networkFactories.size()], &trustChecker, opt.warmupStanzas, opt.stanzasPerConnection, opt.bodymessage, opt.noCompression, opt.noTLS);
 		activePair->onReady.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkSessionReady, this, activePair));
 		activePair->onDoneBenchmarking.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkSessionDone, this, activePair));
-		activePair->onBenchmarkStart.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkBegin, this));
 		activePair->onBenchmarkEnd.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkEnd, this));
 		activeSessionPairs.push_back(activePair);
 		sessionsToActivate.push_back(activePair);
@@ -97,6 +96,7 @@ void LatencyWorkloadBenchmark::handleBenchmarkEnd() {
 }
 
 void LatencyWorkloadBenchmark::benchmark() {
+	handleBenchmarkBegin();
 	for(std::vector<BenchmarkSession*>::iterator i = readySessions.begin(); i != readySessions.end(); ++i) {
 		BenchmarkSession* session = *i;
 		session->benchmark();

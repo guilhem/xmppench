@@ -43,7 +43,6 @@ public:
 
 	boost::signal<void ()> onReady;
 	boost::signal<void ()> onDoneBenchmarking;
-	boost::signal<void ()> onBenchmarkStart;
 	boost::signal<void ()> onBenchmarkEnd;
 	boost::signal<void ()> onStopped;
 };

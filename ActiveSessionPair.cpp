@@ -18,7 +18,7 @@ using namespace Swift;
 
 ActiveSessionPair::ActiveSessionPair(AccountDataProvider* accountDataProvider, Swift::NetworkFactories* networkFactories, Swift::CertificateTrustChecker* trustChecker, int warmUpMessages, int messages, std::string body, bool noCompression, bool noTLS) :
 	accountDataProvider(accountDataProvider), networkFactories(networkFactories), trustChecker(trustChecker), warmUpMessages(warmUpMessages), messages(messages), body(body), noCompression(noCompression), noTLS(noTLS), connectedClients(0), noOfSendMessagesFromAToB(0), noOfReceivedMessagesByAFromB(0), noOfSendMessagesFromBToA(0), noOfReceivedMessagesByBFromA(0), bytesReceived(0) {
-	benchmarkingStartedA = benchmarkingDone = benchmarkingStartedB = false;
+	benchmarkingDone = false;
 	dataCountingForA = dataCountingForB = false;
 	totalMessages = messages + 2 * warmUpMessages;
 	AccountDataProvider::Account accA = accountDataProvider->getAccount();
@@ -94,10 +94,6 @@ void ActiveSessionPair::sendMessageFromAToB() {
 
 	std::string id = idGenerator.generateID();
 	if (noOfSendMessagesFromAToB >= warmUpMessages && noOfSendMessagesFromAToB < (totalMessages - warmUpMessages)) {
-		if (!benchmarkingStartedA) {
-			benchmarkingStartedA = true;
-			if (!benchmarkingStartedB) onBenchmarkStart();
-		}
 		sendMessagesFromA.push_back(MessageStamp(id));
 		//std::cout << "sendMessageFromAToB: benchmarked " << noOfSendMessagesFromAToB<< std::endl;
 	}
@@ -120,11 +116,6 @@ void ActiveSessionPair::sendMessageFromBToA() {
 
 	std::string id = idGenerator.generateID();
 	if (noOfSendMessagesFromBToA >= warmUpMessages && noOfSendMessagesFromBToA < (totalMessages - warmUpMessages)) {
-		if (!benchmarkingStartedB) {
-			benchmarkingStartedB = true;
-			if (!benchmarkingStartedB) onBenchmarkStart();
-			//clientB->onDataRead.connect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
-		}
 		sendMessagesFromB.push_back(MessageStamp(id));
 		//std::cout << "sendMessageFromBToA: benchmarked " << noOfSendMessagesFromBToA << std::endl;
 	} else if (noOfReceivedMessagesByBFromA == (totalMessages - warmUpMessages)) {
@@ -153,6 +144,7 @@ void ActiveSessionPair::handleMessageReceivedByAFromB(boost::shared_ptr<Swift::M
 	if (!benchmarkingDone) checkIfDoneBenchmarking();
 	if (!done) checkIfDone();
 }
+
 void ActiveSessionPair::handleMessageReceivedByBFromA(boost::shared_ptr<Swift::Message> msg) {
 	//messageTimeoutA->stop();
 	receivedMessagesB.push_back(MessageStamp(msg));
