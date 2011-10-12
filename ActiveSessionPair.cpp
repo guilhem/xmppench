@@ -226,9 +226,9 @@ BenchmarkSession::LatencyInfo ActiveSessionPair::getLatencyResults() {
 	info.avgSeconds /= info.stanzas;
 
 	boost::posix_time::time_duration benchmarkDuration = end - begin;
-	info.bytesPerSecond = (double)bytesReceived / benchmarkDuration.seconds();
-	info.stanzasPerSecond = (double)info.stanzas / benchmarkDuration.seconds();
-	info.receivedBytes = (double)bytesReceived;
+	info.bytesPerSecond = static_cast<double>(bytesReceived) / benchmarkDuration.seconds();
+	info.stanzasPerSecond = static_cast<double>(info.stanzas) / benchmarkDuration.seconds();
+	info.receivedBytes = static_cast<double>(bytesReceived);
 	return info;
 }
 
@@ -243,7 +243,7 @@ void ActiveSessionPair::calculateLatencies(std::list<MessageStamp>& sent, std::l
 		std::map<std::string, boost::posix_time::ptime>::iterator receivedTime = receivedMap.find(sentStamp.text);
 		if (receivedTime != receivedMap.end()) {
 			boost::posix_time::time_duration latency = receivedTime->second - sentStamp.timestamp;
-			latencies.push_back(((double)latency.total_microseconds()/1000/1000));
+			latencies.push_back((static_cast<double>(latency.total_microseconds())/1000/1000));
 		} else {
 			std::cout << "Message with subject = " << sentStamp.text << " didn't get through!" << std::endl;
 		}

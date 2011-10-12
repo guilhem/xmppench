@@ -16,5 +16,6 @@ public:
 	};
 
 public:
+	virtual ~AccountDataProvider() {}
 	virtual Account getAccount() = 0;
 };

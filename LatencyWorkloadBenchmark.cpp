@@ -41,7 +41,7 @@ LatencyWorkloadBenchmark::LatencyWorkloadBenchmark(std::vector<Swift::NetworkFac
 	std::cout.flush();
 
 	nextActivateSession = sessionsToActivate.begin();
-	for (size_t n = 0; n < (size_t)opt.parallelLogins && n < sessionsToActivate.size(); ++n) {
+	for (size_t n = 0; n < static_cast<size_t>(opt.parallelLogins) && n < sessionsToActivate.size(); ++n) {
 		(*nextActivateSession)->start();
 		++nextActivateSession;
 	}
@@ -153,7 +153,7 @@ void LatencyWorkloadBenchmark::finishSessions() {
 		accumulated.sum += latency.sum;
 		accumulated.sumOfSquared += latency.sumOfSquared;
 	}
-	double duration = (double)benchmarkDuration.total_microseconds()/1000/1000;
+	double duration = static_cast<double>(benchmarkDuration.total_microseconds())/1000/1000;
 	accumulated.avgSeconds /= activeSessionPairs.size();
 	accumulated.bytesPerSecond = accumulated.receivedBytes / duration;
 	accumulated.stanzasPerSecond = accumulated.stanzas / duration;
