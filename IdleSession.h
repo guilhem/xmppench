@@ -20,7 +20,7 @@ public:
 
 	virtual void start();
 	virtual void stop();
-	virtual void benchmark();
+	virtual void benchmark(const boost::posix_time::ptime& now);
 
 private:
 	void handleConnected();

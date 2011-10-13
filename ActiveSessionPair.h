@@ -27,9 +27,12 @@ public:
 
 	virtual void start();
 	virtual void stop();
-	virtual void benchmark();
+	virtual void warmUp();
+	virtual void benchmark(const boost::posix_time::ptime& now);
 
 	virtual BenchmarkSession::LatencyInfo getLatencyResults();
+
+	boost::signal<void ()> onReadyToWarmUp;
 
 private:
 	void prepareMessageTemplate();
@@ -65,10 +68,10 @@ private:
 	Swift::CertificateTrustChecker* trustChecker;
 	int warmUpMessages;
 	int messages;
-	int totalMessages;
 	std::string body;
 	bool noCompression;
 	bool noTLS;
+	bool benchmarking;
 
 	int connectedClients;
 

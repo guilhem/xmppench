@@ -17,14 +17,13 @@
 using namespace Swift;
 
 ActiveSessionPair::ActiveSessionPair(AccountDataProvider* accountDataProvider, Swift::NetworkFactories* networkFactories, Swift::CertificateTrustChecker* trustChecker, int warmUpMessages, int messages, std::string body, bool noCompression, bool noTLS) :
-	accountDataProvider(accountDataProvider), networkFactories(networkFactories), trustChecker(trustChecker), warmUpMessages(warmUpMessages), messages(messages), body(body), noCompression(noCompression), noTLS(noTLS), connectedClients(0), bytesReceived(0) {
+	accountDataProvider(accountDataProvider), networkFactories(networkFactories), trustChecker(trustChecker), warmUpMessages(warmUpMessages), messages(messages), body(body), noCompression(noCompression), noTLS(noTLS), connectedClients(0), bytesReceived(0), benchmarking(false) {
 	noOfSentMessages[0] = 0;
 	noOfSentMessages[1] = 0;
 	noOfReceivedMessages[0] = 0;
 	noOfReceivedMessages[1] = 0;
 	benchmarkingDone = false;
 	dataCounting[0] = dataCounting[1] = false;
-	totalMessages = messages + 2 * warmUpMessages;
 
 	for (int i = 0; i < 2; i++) {
 		AccountDataProvider::Account acc = accountDataProvider->getAccount();
@@ -60,16 +59,41 @@ void ActiveSessionPair::start() {
 }
 
 void ActiveSessionPair::stop() {
+	done = true;
+	client[0]->onDataRead.disconnect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
+	client[1]->onDataRead.disconnect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
+	end = boost::posix_time::microsec_clock::local_time();
 	client[1]->disconnect();
 	client[0]->disconnect();
+	onDoneBenchmarking();
 }
 
-void ActiveSessionPair::benchmark() {
+void ActiveSessionPair::warmUp() {
 	for (int i = 0; i < 2; i++) {
 		client[i]->onMessageReceived.connect(boost::bind(&ActiveSessionPair::handleMessageReceived, this, i, _1));
 	}
-	sendMessage(0);
-	sendMessage(1);
+	if (warmUpMessages == 0) {
+		onReadyToBenchmark();
+	}
+	else {
+		sendMessage(0);
+		sendMessage(1);
+	}
+}
+
+void ActiveSessionPair::benchmark(const boost::posix_time::ptime& now) {
+	begin = now;
+	benchmarking = true;
+	for (int i = 0; i < 2; i++) {
+		client[i]->onDataRead.connect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
+	}
+
+	noOfSentMessages[0] = 0;
+	noOfSentMessages[1] = 0;
+	if (warmUpMessages == 0) {
+		sendMessage(0);
+		sendMessage(1);
+	}
 }
 
 void ActiveSessionPair::prepareMessageTemplate() {
@@ -81,7 +105,7 @@ void ActiveSessionPair::prepareMessageTemplate() {
 
 void ActiveSessionPair::sendMessage(int connection) {
 	std::string id = idGenerator.generateID();
-	if (noOfSentMessages[connection] >= warmUpMessages && noOfSentMessages[connection] < (totalMessages - warmUpMessages)) {
+	if (benchmarking && noOfSentMessages[connection] < messages) {
 		sentMessages[connection].push_back(MessageStamp(id));
 	}
 	//messageTimeout[connection]->start();
@@ -92,19 +116,17 @@ void ActiveSessionPair::sendMessage(int connection) {
 void ActiveSessionPair::handleMessageReceived(int connection, boost::shared_ptr<Swift::Message> msg) {
 	receivedMessages[connection].push_back((MessageStamp(msg)));
 	++noOfReceivedMessages[connection];
-	if (noOfReceivedMessages[connection] == warmUpMessages) {
-		client[connection]->onDataRead.connect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
+	if (noOfReceivedMessages[connection] == warmUpMessages && noOfReceivedMessages[1 - connection] >= warmUpMessages) {
+		onReadyToBenchmark();
 	}
-	else if (noOfReceivedMessages[connection] == messages + warmUpMessages) {
+	else if (noOfReceivedMessages[connection] == messages) {
 		client[connection]->onDataRead.disconnect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
 	}
-
-	if (noOfSentMessages[1 - connection] < totalMessages) {
+	if (!done) {
 		sendMessage(1 - connection);
 	}
 
 	if (!benchmarkingDone) checkIfDoneBenchmarking();
-	if (!done) checkIfDone();
 }
 
 void ActiveSessionPair::handleMessageTimeout(int connection) {
@@ -183,21 +205,10 @@ void ActiveSessionPair::calculateLatencies(std::list<MessageStamp>& sent, std::l
 }
 
 void ActiveSessionPair::checkIfDoneBenchmarking() {
-	if (!benchmarkingDone && noOfReceivedMessages[0] >= (totalMessages - warmUpMessages) &&
-		noOfReceivedMessages[1] >= (totalMessages - warmUpMessages)) {
+	if (!benchmarkingDone && noOfReceivedMessages[0] >= messages &&
+		noOfReceivedMessages[1] >= messages) {
 		benchmarkingDone = true;
 		onBenchmarkEnd();
-	}
-}
-
-void ActiveSessionPair::checkIfDone() {
-	if (noOfReceivedMessages[0] >= totalMessages &&
-		noOfReceivedMessages[1] >= totalMessages) {
-		client[0]->onDataRead.disconnect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
-		client[1]->onDataRead.disconnect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
-		end = boost::posix_time::microsec_clock::local_time();
-		onDoneBenchmarking();
-		done = true;
 	}
 }
 
@@ -209,7 +220,7 @@ void ActiveSessionPair::handleConnected(int /*connection*/) {
 			client[0]->onDataRead.connect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
 			client[1]->onDataRead.connect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
 		}
-		onReady();
+		onReadyToWarmUp();
 	}
 }
 
