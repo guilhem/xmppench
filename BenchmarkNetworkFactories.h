@@ -8,7 +8,7 @@
 
 #include <Swiften/EventLoop/EventLoop.h>
 #include <Swiften/Network/NetworkFactories.h>
-
+#include <Swiften/TLS/PlatformTLSFactories.h>
 
 #include "BoostEventLoop.h"
 #include "StaticDomainNameResolver.h"
@@ -24,6 +24,8 @@ public:
 	virtual Swift::ConnectionServerFactory* getConnectionServerFactory() const;
 	virtual Swift::NATTraverser* getNATTraverser() const;
 	virtual Swift::XMLParserFactory* getXMLParserFactory() const;
+	virtual Swift::TLSContextFactory* getTLSContextFactory() const;
+	virtual Swift::ProxyProvider* getProxyProvider() const;
 
 private:
 	Swift::TimerFactory* timerFactory;
@@ -31,6 +33,8 @@ private:
 	StaticDomainNameResolver* domainNameResolver;
 	Swift::ConnectionServerFactory* connectionServerFactory;
 	Swift::XMLParserFactory* xmlParserFactory;
+	Swift::PlatformTLSFactories* platformTlsFactories;
+	Swift::ProxyProvider* proxyProvider;
 
 	BoostEventLoop *eventLoop;
 };

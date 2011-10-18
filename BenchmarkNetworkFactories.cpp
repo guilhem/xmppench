@@ -10,8 +10,12 @@
 #include <Swiften/Network/BoostConnectionServerFactory.h>
 #include <Swiften/Network/BoostTimerFactory.h>
 #include <Swiften/Parser/PlatformXMLParserFactory.h>
+#include <Swiften/TLS/PlatformTLSFactories.h>
+#include <Swiften/Network/PlatformProxyProvider.h>
 
 BenchmarkNetworkFactories::BenchmarkNetworkFactories(BoostEventLoop* eventLoop, const std::string& ip) : eventLoop(eventLoop) {
+	proxyProvider = new Swift::PlatformProxyProvider();
+	platformTlsFactories= new Swift::PlatformTLSFactories();
 	xmlParserFactory = new Swift::PlatformXMLParserFactory();
 	connectionServerFactory = new Swift::BoostConnectionServerFactory(eventLoop->getIOService(), eventLoop);
 	domainNameResolver = new StaticDomainNameResolver(ip);
@@ -25,6 +29,8 @@ BenchmarkNetworkFactories::~BenchmarkNetworkFactories() {
 	delete domainNameResolver;
 	delete connectionServerFactory;
 	delete xmlParserFactory;
+	delete platformTlsFactories;
+	delete proxyProvider;
 }
 
 Swift::TimerFactory* BenchmarkNetworkFactories::getTimerFactory() const {
@@ -49,4 +55,12 @@ Swift::NATTraverser* BenchmarkNetworkFactories::getNATTraverser() const {
 
 Swift::XMLParserFactory* BenchmarkNetworkFactories::getXMLParserFactory() const {
 	return xmlParserFactory;
+}
+
+Swift::TLSContextFactory* BenchmarkNetworkFactories::getTLSContextFactory() const {
+	return platformTlsFactories->getTLSContextFactory();
+}
+
+Swift::ProxyProvider* BenchmarkNetworkFactories::getProxyProvider() const {
+	return proxyProvider;
 }
