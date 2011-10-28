@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
 			("rabbitprefix", po::value<std::string>(&rabbitprefix),							"Prefix to use before number for accounts and passwords")
 			("stanzas", po::value<int>(&options.stanzasPerConnection)->default_value(1000),	"stanzas to send per connection")
 			("version",																		"print version number")
-			("waitatstart", po::value<bool>(&waitAtBeginning),								"waits at the beginning on keyboard input")
+            ("waitatstart", po::value<bool>(&waitAtBeginning)->default_value(0),				"waits at the beginning on keyboard input")
 			("wcstanzas", po::value<int>(&options.warmupStanzas)->default_value(0),			"warm up/cool down stanzas")
 	;
 
@@ -158,5 +158,9 @@ int main(int argc, char *argv[]) {
 		threadGroup.add_thread(new boost::thread(eventLoopRunner, eventLoops[n]));
 	}
 	threadGroup.join_all();
+	for (int i = 0; i < jobs; ++i) {
+		delete eventLoops[i];
+		delete networkFactories[i];
+	}
 	return 0;
 }
