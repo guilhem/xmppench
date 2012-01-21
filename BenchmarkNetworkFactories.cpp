@@ -64,3 +64,7 @@ Swift::TLSContextFactory* BenchmarkNetworkFactories::getTLSContextFactory() cons
 Swift::ProxyProvider* BenchmarkNetworkFactories::getProxyProvider() const {
 	return proxyProvider;
 }
+
+Swift::EventLoop* BenchmarkNetworkFactories::getEventLoop() const {
+	return eventLoop;
+}

@@ -26,6 +26,7 @@ public:
 	virtual Swift::XMLParserFactory* getXMLParserFactory() const;
 	virtual Swift::TLSContextFactory* getTLSContextFactory() const;
 	virtual Swift::ProxyProvider* getProxyProvider() const;
+	virtual Swift::EventLoop* getEventLoop() const;
 
 private:
 	Swift::TimerFactory* timerFactory;
