@@ -8,20 +8,21 @@
 
 #include <boost/format.hpp>
 #include <boost/date_time/posix_time/time_formatters.hpp>
+#include <Swiften/base/foreach.h>
 
 #include "ActiveSessionPair.h"
 #include "BenchmarkSession.h"
 #include "IdleSession.h"
 
-LatencyWorkloadBenchmark::LatencyWorkloadBenchmark(std::vector<Swift::NetworkFactories*> networkFactories, AccountDataProvider* accountProvider, Options& opt) : networkFactories(networkFactories), accountProvider(accountProvider), opt(opt) {
+LatencyWorkloadBenchmark::LatencyWorkloadBenchmark(std::vector<Swift::NetworkFactories*> networkFactories, AccountDataProvider* accountProvider, Options& opt) : networkFactories(networkFactories), accountProvider(accountProvider), opt(opt), sessionsReadyToBenchmark(0) {
 	std::cout << "Creating sessions...";
 
 	// create active sessions
 	for (int i = 0; i < opt.noOfActiveSessions / 2; ++i) {
 		ActiveSessionPair *activePair = new ActiveSessionPair(accountProvider, networkFactories[i % networkFactories.size()], &trustChecker, opt.warmupStanzas, opt.stanzasPerConnection, opt.bodymessage, opt.noCompression, opt.noTLS, opt.boshURL);
-		activePair->onReady.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkSessionReady, this, activePair));
+		activePair->onReadyToWarmUp.connect(boost::bind(&ActiveSessionPair::warmUp, activePair));
+		activePair->onReadyToBenchmark.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkSessionReady, this, activePair));
 		activePair->onDoneBenchmarking.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkSessionDone, this, activePair));
-		activePair->onBenchmarkStart.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkBegin, this));
 		activePair->onBenchmarkEnd.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkEnd, this));
 		activeSessionPairs.push_back(activePair);
 		sessionsToActivate.push_back(activePair);
@@ -30,7 +31,7 @@ LatencyWorkloadBenchmark::LatencyWorkloadBenchmark(std::vector<Swift::NetworkFac
 	// create idle sessions
 	for (int i = 0; i < opt.noOfIdleSessions; ++i) {
 		IdleSession *idleSession = new IdleSession(accountProvider, networkFactories[i % networkFactories.size()], &trustChecker, opt.noCompression, opt.noTLS, opt.boshURL);
-		idleSession->onReady.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkSessionReady, this, idleSession));
+		idleSession->onReadyToBenchmark.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkSessionReady, this, idleSession));
 		idleSession->onDoneBenchmarking.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkSessionDone, this, idleSession));
 		idleSessions.push_back(idleSession);
 		sessionsToActivate.push_back(idleSession);
@@ -53,8 +54,8 @@ LatencyWorkloadBenchmark::~LatencyWorkloadBenchmark() {
 
 void LatencyWorkloadBenchmark::handleBenchmarkSessionReady(BenchmarkSession* session) {
 	boost::unique_lock<boost::mutex> lock(handleSessionReadyMutex);
-	readySessions.push_back(session);
-	if (readySessions.size() == sessionsToActivate.size()) {
+	sessionsReadyToBenchmark++;
+	if (sessionsReadyToBenchmark == sessionsToActivate.size()) {
 		std::cout << "done." << std::endl;
 		std::cout << "All sessions ready. Starting benchmark now!" << std::endl;
 		benchmark();
@@ -68,11 +69,11 @@ void LatencyWorkloadBenchmark::handleBenchmarkSessionReady(BenchmarkSession* ses
 
 void LatencyWorkloadBenchmark::handleBenchmarkSessionDone(BenchmarkSession *session) {
 	boost::unique_lock<boost::mutex> lock(handleSessionDoneMutex);
-	doneSessions.push_back(session);
 	if (dynamic_cast<ActiveSessionPair*>(session)) {
 	//	std::cout << "Active session done: " << doneSessions.size() << " / " << readySessions.size() << std::endl;
 	}
-	if (doneSessions.size() == readySessions.size()) {
+	doneSessions.push_back(session);
+	if (doneSessions.size() == activeSessionPairs.size()) {
 		finishSessions();
 	}
 }
@@ -86,20 +87,15 @@ void LatencyWorkloadBenchmark::handleBenchmarkSessionStopped(BenchmarkSession* s
 	}
 }
 
-void LatencyWorkloadBenchmark::handleBenchmarkBegin() {
-	if (begin.is_not_a_date_time()) {
-		begin = boost::posix_time::microsec_clock::local_time();
-	}
-}
-
 void LatencyWorkloadBenchmark::handleBenchmarkEnd() {
 	end = boost::posix_time::microsec_clock::local_time();
 }
 
 void LatencyWorkloadBenchmark::benchmark() {
-	for(std::vector<BenchmarkSession*>::iterator i = readySessions.begin(); i != readySessions.end(); ++i) {
-		BenchmarkSession* session = *i;
-		session->benchmark();
+	begin = boost::posix_time::microsec_clock::local_time();
+	for(std::vector<ActiveSessionPair*>::iterator i = activeSessionPairs.begin(); i != activeSessionPairs.end(); ++i) {
+		ActiveSessionPair* session = *i;
+		session->benchmark(begin);
 	}
 }
 
@@ -203,8 +199,14 @@ void LatencyWorkloadBenchmark::finishSessions() {
 
 	std::cout << "Finishing sessions...";
 	std::cout.flush();
-	for(std::vector<BenchmarkSession*>::iterator i = readySessions.begin(); i != readySessions.end(); ++i) {
-		BenchmarkSession* session = *i;
+	std::list<BenchmarkSession*> readySessions;
+	foreach (ActiveSessionPair* session, activeSessionPairs) {
+		readySessions.push_back(session);
+	}
+	foreach (IdleSession* session, idleSessions) {
+		readySessions.push_back(session);
+	}
+	foreach(BenchmarkSession* session, readySessions) {
 		session->onStopped.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkSessionStopped, this, session));
 		yetToBeStoppedSessions.insert(session);
 		session->stop();

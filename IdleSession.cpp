@@ -38,13 +38,13 @@ void IdleSession::stop() {
 	client->disconnect();
 }
 
-void IdleSession::benchmark() {
+void IdleSession::benchmark(const boost::posix_time::ptime& now) {
 	// no op; we're idle here
 	onDoneBenchmarking();
 }
 
 void IdleSession::handleConnected() {
-	onReady();
+	onReadyToBenchmark();
 }
 
 void IdleSession::handleDisconnected(const boost::optional<ClientError>& error) {

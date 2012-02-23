@@ -9,6 +9,7 @@
 #include <vector>
 
 #include <boost/signal.hpp>
+#include <boost/date_time/posix_time/ptime.hpp>
 
 class BenchmarkSession {
 public:
@@ -37,13 +38,12 @@ public:
 
 	virtual void start() = 0;
 	virtual void stop() = 0;
-	virtual void benchmark() = 0;
+	virtual void benchmark(const boost::posix_time::ptime& now) = 0;
 
 	virtual LatencyInfo getLatencyResults() { return LatencyInfo(); }
 
-	boost::signal<void ()> onReady;
+	boost::signal<void ()> onReadyToBenchmark;
 	boost::signal<void ()> onDoneBenchmarking;
-	boost::signal<void ()> onBenchmarkStart;
 	boost::signal<void ()> onBenchmarkEnd;
 	boost::signal<void ()> onStopped;
 };

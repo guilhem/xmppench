@@ -47,7 +47,6 @@ private:
 	void handleBenchmarkSessionReady(BenchmarkSession*);
 	void handleBenchmarkSessionDone(BenchmarkSession*);
 	void handleBenchmarkSessionStopped(BenchmarkSession*);
-	void handleBenchmarkBegin();
 	void handleBenchmarkEnd();
 
 private:
@@ -67,9 +66,8 @@ private:
 
 	std::vector<BenchmarkSession*>::iterator nextActivateSession;
 	std::vector<BenchmarkSession*> sessionsToActivate;
-	std::vector<BenchmarkSession*> readySessions;
-	std::set<BenchmarkSession*> yetToBeStoppedSessions;
 	std::list<BenchmarkSession*> doneSessions;
+	std::set<BenchmarkSession*> yetToBeStoppedSessions;
 
 	boost::mutex handleSessionReadyMutex;
 	boost::mutex handleSessionDoneMutex;
@@ -77,4 +75,6 @@ private:
 
 	boost::posix_time::ptime begin;
 	boost::posix_time::ptime end;
+
+	int sessionsReadyToBenchmark;
 };
