@@ -9,13 +9,14 @@
 #include <Swiften/Client/CoreClient.h>
 #include <Swiften/Network/NetworkFactories.h>
 #include <Swiften/TLS/CertificateTrustChecker.h>
+#include <Swiften/Base/URL.h>
 
 #include "AccountDataProvider.h"
 #include "BenchmarkSession.h"
 
 class IdleSession : public BenchmarkSession {
 public:
-	IdleSession(AccountDataProvider* accountDataProvider, Swift::NetworkFactories* networkFactories, Swift::CertificateTrustChecker* trustChecker, bool noCompression, bool noTLS);
+	IdleSession(AccountDataProvider* accountDataProvider, Swift::NetworkFactories* networkFactories, Swift::CertificateTrustChecker* trustChecker, bool noCompression, bool noTLS, const Swift::URL& boshURL);
 	virtual ~IdleSession();
 
 	virtual void start();
@@ -30,4 +31,5 @@ private:
 	Swift::CoreClient* client;
 	bool noCompression;
 	bool noTLS;
+	Swift::URL boshURL;
 };

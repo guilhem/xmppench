@@ -18,6 +18,7 @@
 #include <Swiften/JID/JID.h>
 #include <Swiften/Network/NetworkFactories.h>
 #include <Swiften/TLS/BlindCertificateTrustChecker.h>
+#include <Swiften/Base/URL.h>
 
 #include "AccountDataProvider.h"
 #include "ActiveSessionPair.h"
@@ -35,6 +36,7 @@ public:
 		std::string bodymessage;
 		bool noTLS;
 		bool noCompression;
+		Swift::URL boshURL;
 	};
 
 public:

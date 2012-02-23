@@ -18,7 +18,7 @@ LatencyWorkloadBenchmark::LatencyWorkloadBenchmark(std::vector<Swift::NetworkFac
 
 	// create active sessions
 	for (int i = 0; i < opt.noOfActiveSessions / 2; ++i) {
-		ActiveSessionPair *activePair = new ActiveSessionPair(accountProvider, networkFactories[i % networkFactories.size()], &trustChecker, opt.warmupStanzas, opt.stanzasPerConnection, opt.bodymessage, opt.noCompression, opt.noTLS);
+		ActiveSessionPair *activePair = new ActiveSessionPair(accountProvider, networkFactories[i % networkFactories.size()], &trustChecker, opt.warmupStanzas, opt.stanzasPerConnection, opt.bodymessage, opt.noCompression, opt.noTLS, opt.boshURL);
 		activePair->onReady.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkSessionReady, this, activePair));
 		activePair->onDoneBenchmarking.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkSessionDone, this, activePair));
 		activePair->onBenchmarkStart.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkBegin, this));
@@ -29,7 +29,7 @@ LatencyWorkloadBenchmark::LatencyWorkloadBenchmark(std::vector<Swift::NetworkFac
 
 	// create idle sessions
 	for (int i = 0; i < opt.noOfIdleSessions; ++i) {
-		IdleSession *idleSession = new IdleSession(accountProvider, networkFactories[i % networkFactories.size()], &trustChecker, opt.noCompression, opt.noTLS);
+		IdleSession *idleSession = new IdleSession(accountProvider, networkFactories[i % networkFactories.size()], &trustChecker, opt.noCompression, opt.noTLS, opt.boshURL);
 		idleSession->onReady.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkSessionReady, this, idleSession));
 		idleSession->onDoneBenchmarking.connect(boost::bind(&LatencyWorkloadBenchmark::handleBenchmarkSessionDone, this, idleSession));
 		idleSessions.push_back(idleSession);

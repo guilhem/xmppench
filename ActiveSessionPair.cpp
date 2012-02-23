@@ -16,8 +16,8 @@
 
 using namespace Swift;
 
-ActiveSessionPair::ActiveSessionPair(AccountDataProvider* accountDataProvider, Swift::NetworkFactories* networkFactories, Swift::CertificateTrustChecker* trustChecker, int warmUpMessages, int messages, std::string body, bool noCompression, bool noTLS) :
-	accountDataProvider(accountDataProvider), networkFactories(networkFactories), trustChecker(trustChecker), warmUpMessages(warmUpMessages), messages(messages), body(body), noCompression(noCompression), noTLS(noTLS), connectedClients(0), noOfSendMessagesFromAToB(0), noOfReceivedMessagesByAFromB(0), noOfSendMessagesFromBToA(0), noOfReceivedMessagesByBFromA(0), bytesReceived(0) {
+ActiveSessionPair::ActiveSessionPair(AccountDataProvider* accountDataProvider, Swift::NetworkFactories* networkFactories, Swift::CertificateTrustChecker* trustChecker, int warmUpMessages, int messages, std::string body, bool noCompression, bool noTLS, const Swift::URL& boshURL) :
+	accountDataProvider(accountDataProvider), networkFactories(networkFactories), trustChecker(trustChecker), warmUpMessages(warmUpMessages), messages(messages), body(body), noCompression(noCompression), noTLS(noTLS), connectedClients(0), noOfSendMessagesFromAToB(0), noOfReceivedMessagesByAFromB(0), noOfSendMessagesFromBToA(0), noOfReceivedMessagesByBFromA(0), bytesReceived(0), boshURL(boshURL) {
 	benchmarkingStartedA = benchmarkingDone = benchmarkingStartedB = false;
 	dataCountingForA = dataCountingForB = false;
 	totalMessages = messages + 2 * warmUpMessages;
@@ -55,6 +55,7 @@ void ActiveSessionPair::start() {
 	options.useStreamCompression = !noCompression;
 	options.useAcks = false;
 	options.useTLS = noTLS ? ClientOptions::NeverUseTLS : ClientOptions::UseTLSWhenAvailable;
+	options.boshURL = boshURL;
 
 	clientA->connect(options);
 	clientB->connect(options);

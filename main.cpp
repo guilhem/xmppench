@@ -65,6 +65,10 @@ int main(int argc, char *argv[]) {
 	std::string rabbitprefix;
 	bool waitAtBeginning;
 	int jobs = 1;
+	std::string boshHost;
+	std::string boshPath;
+	int boshPort;
+	bool boshHTTPS;
 
 	LatencyWorkloadBenchmark::Options options;
 
@@ -85,6 +89,10 @@ int main(int argc, char *argv[]) {
 			("version",																		"print version number")
             ("waitatstart", po::value<bool>(&waitAtBeginning)->default_value(0),				"waits at the beginning on keyboard input")
 			("wcstanzas", po::value<int>(&options.warmupStanzas)->default_value(0),			"warm up/cool down stanzas")
+			("boshhost", po::value<std::string>(&boshHost), "specify to use BOSH for connection, via this host")
+			("boshport", po::value<int>(&boshPort)->default_value(5280), "specify to change the BOSH port (when using BOSH)")
+			("boshpath", po::value<std::string>(&boshPath)->default_value("http-bind/"), "specify to change the path used, if using BOSH")
+			("boshhttps", "use HTTPS (not HTTP) for BOSH")
 	;
 
 	po::variables_map vm;
@@ -101,6 +109,8 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
+	boshHTTPS = vm.count("boshhttps");
+
 	if (waitAtBeginning) {
 		char c;
 		std::cin >> c;
@@ -116,6 +126,10 @@ int main(int argc, char *argv[]) {
 
 	if (options.parallelLogins < jobs) {
 		options.parallelLogins = jobs;
+	}
+
+	if (!boshHost.empty()) {
+		options.boshURL = URL(boshHTTPS ? "https" : "http", boshHost, boshPort, boshPath);
 	}
 
 	if (!bodyfile.empty()) {

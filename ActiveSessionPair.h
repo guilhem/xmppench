@@ -16,13 +16,14 @@
 #include <Swiften/Elements/Message.h>
 #include <Swiften/Network/Timer.h>
 #include <Swiften/TLS/BlindCertificateTrustChecker.h>
+#include <Swiften/Base/URL.h>
 
 #include "AccountDataProvider.h"
 #include "BenchmarkSession.h"
 
 class ActiveSessionPair : public BenchmarkSession {
 public:
-	ActiveSessionPair(AccountDataProvider* accountDataProvider, Swift::NetworkFactories* networkFactories, Swift::CertificateTrustChecker* trustChecker, int warmUpMessages, int messages, std::string body, bool noCompression, bool noTLS);
+	ActiveSessionPair(AccountDataProvider* accountDataProvider, Swift::NetworkFactories* networkFactories, Swift::CertificateTrustChecker* trustChecker, int warmUpMessages, int messages, std::string body, bool noCompression, bool noTLS, const Swift::URL& boshURL);
 	virtual ~ActiveSessionPair();
 
 	virtual void start();
@@ -110,4 +111,6 @@ private:
 	boost::posix_time::ptime begin;
 	boost::posix_time::ptime end;
 	boost::uintmax_t bytesReceived;
+	
+	Swift::URL boshURL;
 };
