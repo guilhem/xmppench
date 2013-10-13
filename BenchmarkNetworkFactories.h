@@ -27,6 +27,9 @@ public:
 	virtual Swift::TLSContextFactory* getTLSContextFactory() const;
 	virtual Swift::ProxyProvider* getProxyProvider() const;
 	virtual Swift::EventLoop* getEventLoop() const;
+	virtual Swift::NetworkEnvironment* getNetworkEnvironment() const;
+	virtual Swift::IDNConverter* getIDNConverter() const;
+	virtual Swift::CryptoProvider* getCryptoProvider() const;
 
 private:
 	Swift::TimerFactory* timerFactory;
@@ -36,6 +39,9 @@ private:
 	Swift::XMLParserFactory* xmlParserFactory;
 	Swift::PlatformTLSFactories* platformTlsFactories;
 	Swift::ProxyProvider* proxyProvider;
+	Swift::NetworkEnvironment* networkEnvironment;
+	Swift::IDNConverter* idnConverter;
+	Swift::CryptoProvider* cryptoProvider;
 
 	BoostEventLoop *eventLoop;
 };

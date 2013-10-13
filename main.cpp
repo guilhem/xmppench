@@ -12,6 +12,7 @@
 #include <boost/program_options.hpp>
 #include <boost/thread.hpp>
 
+#include <Swiften/Base/foreach.h>
 #include <Swiften/EventLoop/SimpleEventLoop.h>
 #include <Swiften/JID/JID.h>
 #include <Swiften/Network/BoostNetworkFactories.h>
@@ -96,7 +97,17 @@ int main(int argc, char *argv[]) {
 	;
 
 	po::variables_map vm;
-	po::store(po::parse_command_line(argc, argv, desc), vm);
+	po::parsed_options parsed = po::command_line_parser(argc, argv).options(desc).allow_unregistered().run();  
+
+
+	std::vector<std::string> unrecognizedOptions = collect_unrecognized(parsed.options, boost::program_options::include_positional);
+	if (!unrecognizedOptions.empty()) {
+		std::cout << "Unrecognized options!" << std::endl;
+		std::cout << desc << std::endl;
+		return 1;
+	}
+
+	po::store(parsed, vm);
 	po::notify(vm);
 
 	if (vm.count("help")) {

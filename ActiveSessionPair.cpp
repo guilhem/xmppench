@@ -228,6 +228,9 @@ void ActiveSessionPair::handleConnected(int /*connection*/) {
 void ActiveSessionPair::handleDisconnected(int connection, const boost::optional<ClientError>& error) {
 	if (error) {
 		std::cout << "ActiveSessionPair session disconnected with error ( " << error.get().getType() << " )!" << std::endl;
+		if (error->getType() == ClientError::AuthenticationFailedError) {
+			std::cout << "\tAuthentication failed! ( JID = " <<  client[0]->getJID().toString() << " ) " << std::endl;
+		}
 	}
 	if (!client[1 - connection]->isActive()) {
 		onStopped();

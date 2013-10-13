@@ -68,3 +68,15 @@ Swift::ProxyProvider* BenchmarkNetworkFactories::getProxyProvider() const {
 Swift::EventLoop* BenchmarkNetworkFactories::getEventLoop() const {
 	return eventLoop;
 }
+
+Swift::NetworkEnvironment* BenchmarkNetworkFactories::getNetworkEnvironment() const {
+	return NULL;
+}
+
+Swift::IDNConverter* BenchmarkNetworkFactories::getIDNConverter() const {
+	
+}
+
+Swift::CryptoProvider* BenchmarkNetworkFactories::getCryptoProvider() const {
+	
+}
