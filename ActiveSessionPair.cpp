@@ -10,6 +10,7 @@
 
 #include <Swiften/Base/SafeByteArray.h>
 #include <Swiften/Elements/Message.h>
+#include <Swiften/Elements/Presence.h>
 #include <Swiften/Network/NetworkFactories.h>
 #include <Swiften/Network/TimerFactory.h>
 #include <Swiften/TLS/CertificateTrustChecker.h>
@@ -60,10 +61,6 @@ void ActiveSessionPair::start() {
 }
 
 void ActiveSessionPair::stop() {
-	done = true;
-	client[0]->onDataRead.disconnect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
-	client[1]->onDataRead.disconnect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
-	end = boost::posix_time::microsec_clock::local_time();
 	client[1]->disconnect();
 	client[0]->disconnect();
 	onDoneBenchmarking();
@@ -210,6 +207,13 @@ void ActiveSessionPair::checkIfDoneBenchmarking() {
 		noOfReceivedMessages[1] >= messages) {
 		benchmarkingDone = true;
 		onBenchmarkEnd();
+		
+		done = true;
+		client[0]->onDataRead.disconnect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
+		client[1]->onDataRead.disconnect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
+		end = boost::posix_time::microsec_clock::local_time();
+		
+		onDoneBenchmarking();
 	}
 }
 
@@ -218,6 +222,8 @@ void ActiveSessionPair::handleConnected(int /*connection*/) {
 	if (connectedClients == 2) {
 		prepareMessageTemplate();
 		if (warmUpMessages == 0) {
+			client[0]->sendPresence(Presence::create("Send me a message"));
+        	client[1]->sendPresence(Presence::create("Send me a message"));
 			client[0]->onDataRead.connect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
 			client[1]->onDataRead.connect(boost::bind(&ActiveSessionPair::handleDataRead, this, _1));
 		}
