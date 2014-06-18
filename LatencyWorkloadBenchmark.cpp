@@ -8,7 +8,7 @@
 
 #include <boost/format.hpp>
 #include <boost/date_time/posix_time/time_formatters.hpp>
-#include <Swiften/base/foreach.h>
+#include <Swiften/Base/foreach.h>
 
 #include "ActiveSessionPair.h"
 #include "BenchmarkSession.h"
