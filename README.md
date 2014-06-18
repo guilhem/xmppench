@@ -14,21 +14,23 @@ This tool falls under GPLv3 license, see gpl-3.0.txt, due to Swiften's licensing
 
 ### Using Scons inside of a Swift repository checkout
 
-1. git clone git://swift.im/swift
-2. cd swift
-3. hg clone http://code.google.com/p/xmppench/
-4. ./scons xmppench
+```bash
+git clone git://swift.im/swift
+cd swift
+hg clone http://code.google.com/p/xmppench/
+./scons xmppench
+```
 
 ### Using Makefile
 
 1. Adjust Makefile to your needs; i.e. so that xmppench builds
-2. Run make
+2. `make`
 
 Alternatively you can adjust the qmake project file and build it using qmake. That requires heavy Qt though.
 
 ## Help
 
-Run xmppench --help
+`xmppench --help`
 
 ## Known Issues
 
