@@ -1,48 +1,46 @@
-xmppench - XMPP Server Benchmark
-================================
+# xmppench - XMPP Server Benchmark
 
-License:
---------
+## License:
+
 This tool falls under GPLv3 license, see gpl-3.0.txt, due to Swiften's licensing.
 
-Dependencies:
--------------
+## Dependencies:
+
 - Swiften
 	Requires latest Swiften version from the Git repository.
 - Boost
 
-Building Instructions:
-----------------------
-A: Using Scons inside of a Swift repository checkout
-- - - - - - - - - - - - - - - - - - - - - - - - - - 
+## Building Instructions:
+
+### Using Scons inside of a Swift repository checkout
+
 1. git clone git://swift.im/swift
 2. cd swift
 3. hg clone http://code.google.com/p/xmppench/
 4. ./scons xmppench
 
-B: Using Makefile
-- - - - - - - - -
+### Using Makefile
+
 1. Adjust Makefile to your needs; i.e. so that xmppench builds
 2. Run make
 
 Alternatively you can adjust the qmake project file and build it using qmake. That requires heavy Qt though.
 
+## Help
 
-Help:
------
 Run xmppench --help
 
-Known Issues:
--------------
+## Known Issues
+
 - Might block in the "Finish sessions..."-phase. Will be fixed by a future version of Swiften.
 
-Author:
--------
-Tobias Markmann
-xmpp:tm@ayena.de
-mailto:tm@ayena.de
+## Author
 
-Version History:
-----------------
+Tobias Markmann  
+xmpp:   tm@ayena.de  
+mailto: tm@ayena.de
+
+## Version History
+
 0.1
 - initial release
